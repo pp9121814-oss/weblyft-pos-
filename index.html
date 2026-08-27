@@ -2,4176 +2,2303 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>WEBLYFT Restaurant OS</title>
 
 <style>
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-    font-family:Inter,Arial,sans-serif;
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,Arial,sans-serif}
+body{background:#f4f7fb;color:#10213d}
+button,input{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+button.primary{
+ border:0;background:linear-gradient(135deg,#0758ef,#08a9df);
+ color:white;padding:11px 15px;border-radius:9px;
+ font-size:10px;font-weight:800
 }
-
-body{
-    background:#f4f7fb;
-    color:#10213d;
+button.secondary{
+ border:1px solid #dce5ef;background:#fff;
+ color:#52667e;padding:10px 13px;border-radius:9px;
+ font-size:9px
 }
-
-button,
-input,
-select{
-    font:inherit;
+button.full{width:100%}
+.input,.search{
+ width:100%;padding:12px;border:1px solid #dce5ef;
+ border-radius:9px;background:#fff;outline:none;margin-bottom:10px;
+ font-size:10px
 }
-
-button{
-    cursor:pointer;
-}
-
-.hidden{
-    display:none!important;
-}
-
-/* =====================================================
-   GLOBAL
-===================================================== */
-
-.primary{
-    border:0;
-    background:linear-gradient(135deg,#0758ef,#08a9df);
-    color:#fff;
-    padding:11px 15px;
-    border-radius:9px;
-    font-size:10px;
-    font-weight:800;
-    transition:.2s;
-}
-
-.primary:hover{
-    transform:translateY(-1px);
-    box-shadow:0 8px 20px rgba(7,88,239,.2);
-}
-
-.secondary{
-    border:1px solid #dce5ef;
-    background:#f8fafc;
-    color:#52667e;
-    padding:10px 13px;
-    border-radius:9px;
-    font-size:9px;
-}
-
-.full{
-    width:100%;
-}
-
-.input{
-    width:100%;
-    padding:13px;
-    border:1px solid #dce5ef;
-    border-radius:9px;
-    outline:none;
-    background:#fff;
-    margin-bottom:10px;
-    font-size:11px;
-}
-
-.input:focus{
-    border-color:#0758ef;
-    box-shadow:0 0 0 3px rgba(7,88,239,.08);
-}
-
-.muted{
-    color:#8192a7;
-    font-size:9px;
-}
-
-.badge{
-    display:inline-block;
-    padding:5px 8px;
-    border-radius:7px;
-    background:#fff0df;
-    color:#e77919;
-    font-size:8px;
-    font-weight:700;
-}
-
-.badge.green{
-    background:#e5f8ef;
-    color:#0b9865;
-}
-
-.badge.blue{
-    background:#e8f1ff;
-    color:#075de4;
-}
-
+.input:focus,.search:focus{border-color:#0758ef}
+.muted{color:#8192a7;font-size:9px}
 .card{
-    background:#fff;
-    border:1px solid #e0e8f1;
-    border-radius:16px;
-    padding:18px;
-    box-shadow:0 6px 25px rgba(16,33,61,.04);
+ background:#fff;border:1px solid #e0e8f1;border-radius:16px;
+ padding:18px;box-shadow:0 6px 25px #10213d08
 }
-
-/* =====================================================
-   LOGIN / REGISTER
-===================================================== */
-
-.auth-screen{
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:20px;
-    background:
-        radial-gradient(circle at 10% 10%,#dceaff,transparent 32%),
-        radial-gradient(circle at 90% 90%,#d7ffff,transparent 30%),
-        #f5f8fc;
+.badge{
+ display:inline-block;padding:5px 8px;border-radius:7px;
+ background:#fff0df;color:#e77919;font-size:8px;font-weight:700
 }
+.badge.green{background:#e5f8ef;color:#0b9865}
+.badge.blue{background:#e8f1ff;color:#075de4}
+.grid{display:grid;gap:16px}
+.two{grid-template-columns:1.2fr 1fr}
+.stats{grid-template-columns:repeat(4,1fr)}
 
-.auth-box{
-    width:410px;
-    max-width:100%;
-    background:#fff;
-    border:1px solid #e0e8f1;
-    border-radius:24px;
-    padding:30px;
-    box-shadow:0 30px 90px rgba(16,33,61,.12);
+.auth{
+ min-height:100vh;display:flex;justify-content:center;align-items:center;
+ padding:20px;background:radial-gradient(circle at 10% 10%,#dceaff,transparent 30%),#f5f8fc
 }
-
-.brand{
-    display:flex;
-    align-items:center;
-    gap:11px;
+.authbox{
+ width:410px;max-width:100%;background:white;padding:30px;
+ border-radius:24px;border:1px solid #e0e8f1;
+ box-shadow:0 30px 90px #10213d18
 }
-
 .logo{
-    width:48px;
-    height:48px;
-    display:grid;
-    place-items:center;
-    border-radius:14px;
-    color:#fff;
-    font-size:20px;
-    font-weight:900;
-    background:linear-gradient(135deg,#0758ef,#12d9cf);
+ width:46px;height:46px;border-radius:13px;display:grid;
+ place-items:center;background:linear-gradient(135deg,#0758ef,#12d9cf);
+ color:white;font-weight:900;font-size:19px
 }
-
-.brand-name{
-    font-size:19px;
-    font-weight:900;
-}
-
-.brand-name small{
-    display:block;
-    color:#8798ac;
-    font-size:8px;
-    letter-spacing:1.4px;
-    margin-top:3px;
-}
-
-.auth-box h1{
-    margin-top:28px;
-    font-size:25px;
-}
-
-.auth-box .sub{
-    color:#8394a8;
-    font-size:10px;
-    line-height:1.6;
-    margin:7px 0 20px;
-}
-
-.auth-link{
-    text-align:center;
-    margin-top:15px;
-    font-size:9px;
-    color:#7e90a5;
-}
-
-.auth-link button{
-    border:0;
-    background:none;
-    color:#075de4;
-    font-weight:700;
-}
-
-/* =====================================================
-   OWNER APP
-===================================================== */
-
-#ownerApp{
-    display:none;
-}
+.brand{display:flex;align-items:center;gap:10px}
+.brand b{font-size:18px}
+.brand small{display:block;color:#8798ac;font-size:7px;letter-spacing:1.4px}
+.auth h1{font-size:25px;margin-top:28px}
+.auth p{line-height:1.6;margin:8px 0 20px}
+.authlink{text-align:center;margin-top:15px;font-size:9px;color:#8192a7}
+.authlink button{border:0;background:none;color:#075de4;font-weight:800}
 
 .sidebar{
-    position:fixed;
-    inset:0 auto 0 0;
-    width:235px;
-    padding:22px 15px;
-    background:#071529;
-    color:#fff;
-    z-index:50;
+ position:fixed;left:0;top:0;bottom:0;width:230px;
+ background:#071529;color:white;padding:20px 14px;z-index:10
 }
-
-.sidebar .brand-name{
-    color:#fff;
-}
-
+.sidebar .brand b{color:#fff}
 .workspace{
-    margin:30px 0 15px;
-    padding:13px;
-    background:#0d2039;
-    border:1px solid #1d3756;
-    border-radius:11px;
+ margin:25px 0 15px;background:#0d2039;padding:12px;border-radius:10px
 }
-
-.workspace small{
-    color:#7189a5;
-    font-size:8px;
-}
-
-.workspace b{
-    display:block;
-    margin:7px 0;
-    font-size:11px;
-}
-
-.workspace span{
-    color:#7890ad;
-    font-size:8px;
-}
-
-.nav{
-    display:grid;
-    gap:4px;
-}
-
+.workspace small{color:#7189a5;font-size:7px}
+.workspace b{display:block;font-size:11px;margin:6px 0}
+.workspace span{font-size:8px;color:#7890ad}
+.nav{display:grid;gap:4px}
 .nav button{
-    border:0;
-    background:transparent;
-    color:#9db0c8;
-    text-align:left;
-    padding:11px;
-    border-radius:8px;
-    font-size:10px;
+ border:0;background:none;color:#9db0c8;text-align:left;
+ padding:11px;border-radius:8px;font-size:10px
 }
-
-.nav button:hover,
-.nav button.active{
-    background:#0b5de8;
-    color:#fff;
-}
-
-.main{
-    margin-left:235px;
-    padding:28px;
-    max-width:1500px;
-}
-
-.topbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:23px;
-}
-
-.topbar small{
-    color:#8394a8;
-    font-size:8px;
-    letter-spacing:1.5px;
-}
-
-.topbar h1{
-    margin-top:5px;
-    font-size:25px;
-}
-
+.nav button:hover,.nav button.active{background:#0b5de8;color:#fff}
+.main{margin-left:230px;padding:28px;max-width:1500px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.top small{font-size:8px;color:#8394a8;letter-spacing:1.5px}
+.top h1{font-size:25px;margin-top:5px}
 .avatar{
-    width:38px;
-    height:38px;
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    background:#e8f1ff;
-    color:#075de4;
-    font-size:10px;
-    font-weight:800;
+ width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+ background:#e8f1ff;color:#075de4;font-weight:800;font-size:10px
 }
+.stat span{font-size:10px;color:#8394a8}
+.stat strong{display:block;font-size:24px;margin:9px 0}
+.greenText{font-size:9px;color:#0fa16b}
+.cardhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.card h2{font-size:14px}
 
-/* =====================================================
-   DASHBOARD
-===================================================== */
-
-.grid{
-    display:grid;
-    gap:16px;
+.order{
+ display:grid;grid-template-columns:42px 1fr auto auto;gap:10px;
+ align-items:center;padding:11px 0;border-bottom:1px solid #edf1f5
 }
-
-.stats{
-    grid-template-columns:repeat(4,1fr);
+.order:last-child{border-bottom:0}
+.ticon{
+ width:38px;height:38px;border-radius:9px;background:#edf4ff;
+ display:grid;place-items:center;color:#075de4;font-size:9px;font-weight:800
 }
+.order b{font-size:10px}
+.order small{display:block;font-size:8px;color:#8394a8;margin-top:3px}
 
-.two{
-    grid-template-columns:1.2fr 1fr;
+.tablegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.table{
+ padding:15px;min-height:110px;border:1px solid #dfe7ef;
+ border-radius:12px;background:#fff
 }
+.table b{font-size:12px}
+.table span{display:block;color:#0b9865;font-size:8px;margin-top:8px}
+.table.busy span{color:#e77919}
 
-.stat span{
-    color:#8394a8;
-    font-size:10px;
+.menurow{
+ display:grid;grid-template-columns:45px 1fr auto auto;
+ gap:10px;align-items:center;padding:10px 0;
+ border-bottom:1px solid #edf1f5
 }
-
-.stat strong{
-    display:block;
-    margin:10px 0;
-    font-size:24px;
+.food{
+ width:40px;height:40px;border-radius:10px;background:#f0f5fa;
+ display:grid;place-items:center;font-size:22px
 }
-
-.green-text{
-    color:#0fa16b;
-    font-size:9px;
-}
-
-.card-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:15px;
-}
-
-.card-head h2,
-.card h2{
-    font-size:14px;
-}
-
-.chart{
-    height:210px;
-    display:flex;
-    align-items:end;
-    gap:15px;
-}
-
-.bar-wrap{
-    flex:1;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    justify-content:end;
-    align-items:center;
-}
-
-.bar{
-    width:28px;
-    border-radius:7px 7px 2px 2px;
-    background:linear-gradient(#0bcbd0,#0758ef);
-}
-
-.bar-wrap small{
-    color:#8999ad;
-    font-size:8px;
-    margin-top:7px;
-}
-
-/* =====================================================
-   ORDER ROW
-===================================================== */
-
-.order-row{
-    display:grid;
-    grid-template-columns:42px 1fr auto auto;
-    align-items:center;
-    gap:10px;
-    padding:12px 0;
-    border-bottom:1px solid #edf1f5;
-}
-
-.order-row:last-child{
-    border-bottom:0;
-}
-
-.table-icon{
-    width:38px;
-    height:38px;
-    border-radius:9px;
-    display:grid;
-    place-items:center;
-    background:#edf4ff;
-    color:#075de4;
-    font-size:9px;
-    font-weight:800;
-}
-
-.order-row b{
-    font-size:10px;
-}
-
-.order-row small{
-    display:block;
-    color:#8394a8;
-    font-size:8px;
-    margin-top:3px;
-}
-
-/* =====================================================
-   TABLES
-===================================================== */
-
-.table-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:12px;
-}
-
-.table-card{
-    background:#fff;
-    border:1px solid #dfe7ef;
-    border-radius:12px;
-    padding:15px;
-    min-height:110px;
-    transition:.2s;
-}
-
-.table-card:hover{
-    border-color:#075de4;
-    transform:translateY(-2px);
-}
-
-.table-card b{
-    font-size:12px;
-}
-
-.table-card span{
-    display:block;
-    color:#0fa16b;
-    font-size:8px;
-    margin-top:8px;
-}
-
-.table-card.busy span{
-    color:#e77818;
-}
-
-.table-card small{
-    display:block;
-    margin-top:14px;
-}
-
-/* =====================================================
-   MENU
-===================================================== */
-
-.menu-row{
-    display:grid;
-    grid-template-columns:45px 1fr auto auto;
-    gap:11px;
-    align-items:center;
-    padding:11px 0;
-    border-bottom:1px solid #edf1f5;
-}
-
-.food-icon{
-    width:40px;
-    height:40px;
-    border-radius:10px;
-    background:#f0f5fa;
-    display:grid;
-    place-items:center;
-    font-size:22px;
-}
-
-.menu-row b{
-    font-size:10px;
-}
-
-.menu-row small{
-    display:block;
-    color:#8394a8;
-    font-size:8px;
-    margin-top:3px;
-}
-
-.search{
-    width:100%;
-    padding:12px;
-    border:1px solid #dfe7ef;
-    border-radius:9px;
-    outline:none;
-    font-size:10px;
-    margin-bottom:12px;
-}
-
+.menurow b{font-size:10px}
+.menurow small{display:block;color:#8394a8;font-size:8px;margin-top:3px}
 .outline{
-    border:1px solid #075de4;
-    color:#075de4;
-    background:#fff;
-    border-radius:7px;
-    padding:7px 10px;
-    font-size:8px;
-    font-weight:700;
+ border:1px solid #075de4;color:#075de4;background:white;
+ padding:7px 9px;border-radius:7px;font-size:8px;font-weight:800
 }
-
-/* =====================================================
-   POS
-===================================================== */
-
-.pos-grid{
-    grid-template-columns:1.2fr .8fr;
-}
-
-.cart-row{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:10px 0;
-    border-bottom:1px solid #edf1f5;
-    font-size:10px;
-}
-
-.cart-row div:nth-child(2){
-    flex:1;
-}
-
-.qty{
-    display:flex;
-    align-items:center;
-    gap:5px;
-}
-
-.qty button{
-    width:22px;
-    height:22px;
-    border:0;
-    border-radius:5px;
-    background:#edf4ff;
-    color:#075de4;
-}
-
-.bill{
-    display:flex;
-    justify-content:space-between;
-    padding:6px 0;
-    font-size:10px;
-}
-
-.total{
-    font-size:15px;
-    font-weight:800;
-}
-
-/* =====================================================
-   QR
-===================================================== */
-
-.qr-layout{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:16px;
-}
-
-.qr-box{
-    text-align:center;
-}
-
-.qr-box img{
-    width:270px;
-    max-width:90%;
-    display:block;
-    margin:20px auto;
-    border-radius:10px;
-}
-
 .flow{
-    padding:13px;
-    margin:8px 0;
-    border-radius:9px;
-    background:#f7f9fc;
-    font-size:10px;
+ background:#f7f9fc;border-radius:9px;padding:12px;
+ margin:7px 0;font-size:10px
 }
+.bill{display:flex;justify-content:space-between;padding:6px 0;font-size:10px}
+.total{font-size:15px;font-weight:800;border-top:1px solid #e5ebf1;margin-top:7px;padding-top:10px}
 
-/* =====================================================
-   CUSTOMER
-===================================================== */
+.qrgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.qr{text-align:center}
+.qr img{width:260px;max-width:90%;margin:18px auto;display:block;border-radius:8px}
 
-#customerApp{
-    display:none;
-    min-height:100vh;
-    background:#f6f9fc;
+.customer{min-height:100vh;background:#f5f8fc}
+.chead{
+ background:#071529;color:#fff;padding:15px 20px;
+ display:flex;justify-content:space-between;align-items:center
 }
-
-.customer-header{
-    background:#071529;
-    color:#fff;
-    padding:15px 20px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.chead b{font-size:17px}
+.chead small{display:block;color:#91a8c1;font-size:7px}
+.cwrap{max-width:900px;margin:auto;padding:15px}
+.hero{
+ background:linear-gradient(135deg,#071529,#0a3b78);
+ color:#fff;border-radius:18px;padding:24px;
+ display:flex;justify-content:space-between;align-items:center;margin-bottom:14px
 }
-
-.customer-header b{
-    font-size:17px;
+.hero h1{font-size:24px;margin:7px 0}
+.hero p{font-size:9px;color:#aec1d9}
+.tbig{
+ width:60px;height:60px;background:#fff;color:#075de4;
+ display:grid;place-items:center;border-radius:15px;font-weight:900
 }
-
-.customer-header small{
-    display:block;
-    color:#91a8c1;
-    font-size:7px;
-    margin-top:3px;
+.cmenu{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cfood{
+ background:#fff;border:1px solid #e0e8f1;border-radius:13px;
+ padding:10px;display:grid;grid-template-columns:65px 1fr;gap:10px
 }
-
-.customer-wrap{
-    width:100%;
-    max-width:920px;
-    margin:auto;
-    padding:18px;
+.cfood .fi{
+ background:#f0f5fa;border-radius:10px;display:grid;
+ place-items:center;font-size:31px
 }
-
-.customer-hero{
-    background:linear-gradient(135deg,#071529,#0a3b78);
-    color:#fff;
-    border-radius:18px;
-    padding:25px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.cfood h3{font-size:10px;margin:6px 0}
+.cfood small{font-size:7px;color:#8293a8}
+.cfood button{
+ float:right;border:0;background:#eaf2ff;color:#075de4;
+ padding:6px 9px;border-radius:6px;font-size:8px;font-weight:800
 }
-
-.customer-hero h1{
-    font-size:25px;
-    margin:6px 0;
+.ccard{
+ background:#fff;border:1px solid #e0e8f1;border-radius:14px;
+ padding:16px;margin-top:14px
 }
-
-.customer-hero p{
-    color:#aec1d9;
-    font-size:10px;
+.cartrow{
+ display:flex;align-items:center;gap:9px;
+ padding:9px 0;border-bottom:1px solid #edf1f5;font-size:10px
 }
-
-.table-number{
-    width:60px;
-    height:60px;
-    border-radius:15px;
-    background:#fff;
-    color:#075de4;
-    display:grid;
-    place-items:center;
-    font-weight:900;
+.cartrow div:nth-child(2){flex:1}
+.qty{display:flex;gap:5px;align-items:center}
+.qty button{
+ width:22px;height:22px;border:0;border-radius:5px;
+ background:#edf4ff;color:#075de4
 }
-
-.customer-menu{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:12px;
+.status{
+ background:#eaf2ff;padding:18px;border-radius:12px;text-align:center;margin-top:14px
 }
-
-.customer-food{
-    background:#fff;
-    border:1px solid #e0e8f1;
-    border-radius:13px;
-    padding:10px;
-    display:grid;
-    grid-template-columns:70px 1fr;
-    gap:10px;
-}
-
-.customer-food .image{
-    background:#f0f5fa;
-    border-radius:10px;
-    display:grid;
-    place-items:center;
-    font-size:34px;
-}
-
-.customer-food h3{
-    font-size:10px;
-    margin:5px 0;
-}
-
-.customer-food small{
-    color:#8293a8;
-    font-size:7px;
-}
-
-.customer-food button{
-    float:right;
-    border:0;
-    background:#eaf2ff;
-    color:#075de4;
-    padding:6px 9px;
-    border-radius:6px;
-    font-size:8px;
-    font-weight:800;
-}
-
-.customer-card{
-    background:#fff;
-    border:1px solid #e0e8f1;
-    border-radius:14px;
-    padding:17px;
-    margin-top:15px;
-}
-
-.customer-status{
-    background:#eaf2ff;
-    border-radius:12px;
-    padding:18px;
-    margin-top:15px;
-    text-align:center;
-}
-
-.eta{
-    display:block;
-    margin-top:7px;
-    color:#075de4;
-    font-size:30px;
-    font-weight:900;
-}
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
+.eta{display:block;color:#075de4;font-size:30px;font-weight:900;margin:8px}
 
 @media(max-width:900px){
-
-    .sidebar{
-        width:65px;
-    }
-
-    .sidebar .brand-name,
-    .workspace,
-    .nav span{
-        display:none;
-    }
-
-    .main{
-        margin-left:65px;
-    }
-
-    .stats{
-        grid-template-columns:1fr 1fr;
-    }
-
-    .two,
-    .pos-grid,
-    .qr-layout{
-        grid-template-columns:1fr;
-    }
-
-    .table-grid{
-        grid-template-columns:repeat(3,1fr);
-    }
+ .sidebar{width:65px}
+ .sidebar .brand b,.workspace,.nav span{display:none}
+ .main{margin-left:65px}
+ .stats{grid-template-columns:1fr 1fr}
+ .two,.qrgrid{grid-template-columns:1fr}
+ .tablegrid{grid-template-columns:repeat(3,1fr)}
 }
-
 @media(max-width:600px){
-
-    .sidebar{
-        top:auto;
-        bottom:0;
-        width:100%;
-        height:58px;
-        padding:4px;
-    }
-
-    .nav{
-        display:flex;
-        justify-content:space-around;
-    }
-
-    .nav button{
-        padding:8px;
-    }
-
-    .main{
-        margin:0;
-        padding:14px 12px 75px;
-    }
-
-    .table-grid{
-        grid-template-columns:1fr 1fr;
-    }
-
-    .customer-menu{
-        grid-template-columns:1fr;
-    }
-
-    .customer-wrap{
-        padding:12px;
-    }
+ .sidebar{top:auto;bottom:0;width:100%;height:58px;padding:4px}
+ .nav{display:flex;justify-content:space-around}
+ .nav button{padding:8px}
+ .main{margin:0;padding:14px 12px 75px}
+ .tablegrid{grid-template-columns:1fr 1fr}
+ .cmenu{grid-template-columns:1fr}
 }
 </style>
 </head>
 
 <body>
 
+<!-- ================= AUTH ================= -->
 
-<!-- =====================================================
-     AUTH
-===================================================== -->
+<section id="auth" class="auth">
 
-<section
-id="authScreen"
-class="auth-screen"
->
-
-<div class="auth-box">
+<div class="authbox">
 
 <div class="brand">
-
-<div class="logo">
-W↗
-</div>
-
-<div class="brand-name">
-WEBLYFT
+<div class="logo">W↗</div>
+<div>
+<b>WEBLYFT</b>
 <small>RESTAURANT OS</small>
 </div>
-
 </div>
 
+<div id="loginBox">
 
-<!-- LOGIN -->
+<h1>Owner Login</h1>
 
-<div id="loginForm">
-
-<h1>
-Owner Login
-</h1>
-
-<p class="sub">
-Manage your restaurant, menu, tables,
-orders and kitchen from one system.
+<p class="muted">
+Manage your restaurant, tables, menu, kitchen and billing.
 </p>
 
-<input
-id="loginEmail"
-class="input"
-type="email"
-placeholder="Owner email"
->
+<input id="lemail" class="input" type="email" placeholder="Owner email">
+<input id="lpass" class="input" type="password" placeholder="Password">
 
-<input
-id="loginPassword"
-class="input"
-type="password"
-placeholder="Password"
->
+<button class="primary full" onclick="login()">LOGIN</button>
 
-<button
-class="primary full"
-onclick="login()"
->
-LOGIN
-</button>
-
-<div class="auth-link">
+<div class="authlink">
 Don't have an account?
-<button onclick="showRegister()">
-Create restaurant
-</button>
+<button onclick="showRegister()">Create Restaurant</button>
 </div>
 
-<p
-id="loginMessage"
-class="muted"
-style="margin-top:12px"
-></p>
+<p id="lmsg" class="muted"></p>
 
 </div>
 
 
-<!-- REGISTER -->
+<div id="registerBox" class="hidden">
 
-<div
-id="registerForm"
-class="hidden"
->
+<h1>Create Restaurant</h1>
 
-<h1>
-Create Restaurant
-</h1>
-
-<p class="sub">
+<p class="muted">
 Create your WEBLYFT restaurant workspace.
 </p>
 
-<input
-id="registerRestaurant"
-class="input"
-placeholder="Restaurant name"
->
+<input id="rname" class="input" placeholder="Restaurant name">
+<input id="roner" class="input" placeholder="Owner name">
+<input id="remail" class="input" type="email" placeholder="Owner email">
+<input id="rpass" class="input" type="password" placeholder="Password">
+<input id="rconfirm" class="input" type="password" placeholder="Confirm password">
 
-<input
-id="registerOwner"
-class="input"
-placeholder="Owner name"
->
-
-<input
-id="registerEmail"
-class="input"
-type="email"
-placeholder="Owner email"
->
-
-<input
-id="registerPassword"
-class="input"
-type="password"
-placeholder="Password — minimum 8 characters"
->
-
-<input
-id="registerConfirm"
-class="input"
-type="password"
-placeholder="Confirm password"
->
-
-<button
-class="primary full"
-onclick="registerRestaurant()"
->
+<button class="primary full" onclick="register()">
 CREATE ACCOUNT
 </button>
 
-<div class="auth-link">
-Already have an account?
-<button onclick="showLogin()">
-Back to login
-</button>
+<div class="authlink">
+Already registered?
+<button onclick="showLogin()">Back to Login</button>
 </div>
 
-<p
-id="registerMessage"
-class="muted"
-style="margin-top:12px"
-></p>
+<p id="rmsg" class="muted"></p>
 
 </div>
 
 </div>
-
 </section>
 
 
-<!-- =====================================================
-     OWNER APPLICATION
-===================================================== -->
+<!-- ================= OWNER ================= -->
 
-<section id="ownerApp">
+<section id="owner" class="hidden">
 
 <aside class="sidebar">
 
 <div class="brand">
-
-<div class="logo">
-W↗
-</div>
-
-<div class="brand-name">
-WEBLYFT
+<div class="logo">W↗</div>
+<div>
+<b>WEBLYFT</b>
 <small>RESTAURANT OS</small>
 </div>
-
 </div>
-
 
 <div class="workspace">
-
-<small>
-WORKSPACE
-</small>
-
-<b id="restaurantName">
-Restaurant
-</b>
-
-<span id="ownerName">
-Owner
-</span>
-
+<small>WORKSPACE</small>
+<b id="restName">Restaurant</b>
+<span id="ownerName">Owner</span>
 </div>
-
 
 <div class="nav">
 
-<button
-class="active"
-data-page="dashboard"
-onclick="openPage('dashboard',this)"
->
-▦ <span>Dashboard</span>
-</button>
-
-<button
-data-page="orders"
-onclick="openPage('orders',this)"
->
-☷ <span>Orders</span>
-</button>
-
-<button
-data-page="tables"
-onclick="openPage('tables',this)"
->
-▣ <span>Tables</span>
-</button>
-
-<button
-data-page="menu"
-onclick="openPage('menu',this)"
->
-◫ <span>Menu</span>
-</button>
-
-<button
-data-page="pos"
-onclick="openPage('pos',this)"
->
-＋ <span>New Order</span>
-</button>
-
-<button
-data-page="kitchen"
-onclick="openPage('kitchen',this)"
->
-⌁ <span>Kitchen</span>
-</button>
-
-<button
-data-page="qr"
-onclick="openPage('qr',this)"
->
-⌗ <span>QR Manager</span>
-</button>
-
-<button
-data-page="settings"
-onclick="openPage('settings',this)"
->
-⚙ <span>Settings</span>
-</button>
-
-<button onclick="logout()">
-↪ <span>Logout</span>
-</button>
+<button class="active" onclick="page('dashboard',this)">▦ <span>Dashboard</span></button>
+<button onclick="page('orders',this)">☷ <span>Orders</span></button>
+<button onclick="page('tables',this)">▣ <span>Tables</span></button>
+<button onclick="page('menu',this)">◫ <span>Menu</span></button>
+<button onclick="page('pos',this)">＋ <span>New Order</span></button>
+<button onclick="page('kitchen',this)">⌁ <span>Kitchen</span></button>
+<button onclick="page('qr',this)">⌗ <span>QR Manager</span></button>
+<button onclick="page('range',this)">◎ <span>Order Range</span></button>
+<button onclick="page('billing',this)">₹ <span>WEBLYFT Billing</span></button>
+<button onclick="page('settings',this)">⚙ <span>Settings</span></button>
+<button onclick="logout()">↪ <span>Logout</span></button>
 
 </div>
-
 </aside>
-
 
 <main class="main">
 
-<div class="topbar">
-
+<div class="top">
 <div>
-
-<small>
-RESTAURANT MANAGEMENT
-</small>
-
-<h1 id="pageTitle">
-Dashboard
-</h1>
-
+<small>RESTAURANT MANAGEMENT</small>
+<h1 id="title">Dashboard</h1>
+</div>
+<div id="avatar" class="avatar">OW</div>
 </div>
 
-<div
-class="avatar"
-id="avatar"
->
-OW
-</div>
-
-</div>
-
-
-<div id="pageContent"></div>
+<div id="content"></div>
 
 </main>
-
 </section>
 
 
-<!-- =====================================================
-     CUSTOMER WEBSITE
-===================================================== -->
+<!-- ================= CUSTOMER ================= -->
 
-<section id="customerApp">
+<section id="customer" class="customer hidden">
 
-<header class="customer-header">
-
+<header class="chead">
 <div>
-
-<b>
-WEBLYFT
-</b>
-
-<small>
-RESTAURANT DIGITAL MENU
-</small>
-
+<b>WEBLYFT</b>
+<small>DIGITAL MENU</small>
 </div>
-
-<b id="customerTable">
-TABLE
-</b>
-
+<b id="ctable">TABLE</b>
 </header>
 
+<div class="cwrap">
 
-<main class="customer-wrap">
-
-<section class="customer-hero">
-
+<div class="hero">
 <div>
-
-<small>
-WELCOME
-</small>
-
-<h1 id="customerRestaurant">
-Restaurant
-</h1>
-
-<p>
-Order directly from your table.
-</p>
-
+<small>WELCOME</small>
+<h1 id="crest">Restaurant</h1>
+<p>Order directly from your table.</p>
+</div>
+<div class="tbig" id="ctablebig">T1</div>
 </div>
 
-<div
-id="customerTableBig"
-class="table-number"
->
-T1
-</div>
-
-</section>
-
-
-<input
-id="customerSearch"
-class="search"
+<input id="csearch" class="search"
 placeholder="⌕ Search menu..."
-oninput="renderCustomerMenu()"
->
+oninput="customerMenu()">
 
+<div id="foods" class="cmenu"></div>
 
-<div
-id="customerFoods"
-class="customer-menu"
-></div>
-
-
-<div class="customer-card">
-
-<div class="card-head">
-
-<h2>
-Your Cart
-</h2>
-
-<span
-id="customerItemCount"
-class="badge blue"
->
-0 ITEMS
-</span>
-
+<div class="ccard">
+<div class="cardhead">
+<h2>Your Cart</h2>
+<span id="count" class="badge blue">0 ITEMS</span>
 </div>
-
-<div id="customerCart">
-Your cart is empty.
+<div id="cart">Your cart is empty.</div>
 </div>
-
-</div>
-
 
 <div id="customerStatus"></div>
 
-</main>
-
+</div>
 </section>
 
 
 <script>
 
 /* =====================================================
-   LOCAL DATABASE
+DATABASE
 ===================================================== */
 
-const DB_KEY =
-"WEBLYFT_PRODUCTION_SINGLE_HTML_V1";
+const KEY="WEBLYFT_SINGLE_HTML_FINAL";
 
-
-let database =
-JSON.parse(
-localStorage.getItem(DB_KEY)
-)
-||
-{
-    restaurants:[],
-    currentRestaurant:null
+let db=JSON.parse(localStorage.getItem(KEY))||{
+ restaurants:[],
+ current:null
 };
 
-
 let ownerCart=[];
-
 let customerCart=[];
-
 let selectedTable=1;
 
-
-/* =====================================================
-   DATABASE SAVE
-===================================================== */
-
 function save(){
+ localStorage.setItem(KEY,JSON.stringify(db));
+}
 
-localStorage.setItem(
-DB_KEY,
-JSON.stringify(database)
-);
+function rest(){
+ return db.restaurants.find(x=>x.id===db.current);
+}
 
+function money(n){
+ return "₹"+Number(n).toLocaleString("en-IN",{maximumFractionDigits:2});
 }
 
 
 /* =====================================================
-   CURRENT RESTAURANT
-===================================================== */
-
-function currentRestaurant(){
-
-return database.restaurants.find(
-r =>
-r.id === database.currentRestaurant
-);
-
-}
-
-
-/* =====================================================
-   AUTH SCREEN SWITCH
+AUTH
 ===================================================== */
 
 function showRegister(){
-
-document
-.getElementById("loginForm")
-.classList.add("hidden");
-
-document
-.getElementById("registerForm")
-.classList.remove("hidden");
-
+ loginBox.classList.add("hidden");
+ registerBox.classList.remove("hidden");
 }
-
 
 function showLogin(){
-
-document
-.getElementById("registerForm")
-.classList.add("hidden");
-
-document
-.getElementById("loginForm")
-.classList.remove("hidden");
-
+ registerBox.classList.add("hidden");
+ loginBox.classList.remove("hidden");
 }
 
+function register(){
 
-/* =====================================================
-   CREATE RESTAURANT
-===================================================== */
+ let name=rname.value.trim();
+ let owner=roner.value.trim();
+ let email=remail.value.trim().toLowerCase();
+ let pass=rpass.value;
+ let confirm=rconfirm.value;
 
-function registerRestaurant(){
+ if(!name||!owner||!email||!pass||!confirm){
+  rmsg.innerText="Please fill all fields.";
+  rmsg.style.color="#d33";
+  return;
+ }
 
-const name =
-document
-.getElementById("registerRestaurant")
-.value.trim();
+ if(pass.length<8){
+  rmsg.innerText="Password must contain at least 8 characters.";
+  rmsg.style.color="#d33";
+  return;
+ }
 
-const owner =
-document
-.getElementById("registerOwner")
-.value.trim();
+ if(pass!==confirm){
+  rmsg.innerText="Passwords do not match.";
+  rmsg.style.color="#d33";
+  return;
+ }
 
-const email =
-document
-.getElementById("registerEmail")
-.value.trim();
+ if(db.restaurants.some(x=>x.email===email)){
+  rmsg.innerText="Email already registered.";
+  rmsg.style.color="#d33";
+  return;
+ }
 
-const password =
-document
-.getElementById("registerPassword")
-.value;
+ let r={
+  id:"REST_"+Date.now(),
+  name,
+  owner,
+  email,
+  password:pass,
 
-const confirm =
-document
-.getElementById("registerConfirm")
-.value;
+  tax:{
+   cgst:2.5,
+   sgst:2.5,
+   service:0
+  },
 
+  range:{
+   meters:100,
+   lat:null,
+   lng:null,
+   enabled:false
+  },
 
-const message =
-document.getElementById(
-"registerMessage"
-);
+  billing:{
+   plan:"FREE",
+   amount:0,
+   status:"ACTIVE",
+   nextPayment:null,
+   history:[]
+  },
 
+  tables:[],
+  menu:[],
+  orders:[]
+ };
 
-if(
-!name ||
-!owner ||
-!email ||
-!password ||
-!confirm
-){
+ for(let i=1;i<=12;i++){
 
-message.style.color="#d33";
+  r.tables.push({
+   number:i,
+   token:
+    "QR_"+r.id+"_T"+i+"_"+Math.random().toString(36).slice(2)
+  });
 
-message.innerText=
-"Please fill all fields.";
+ }
 
-return;
+ r.menu=[
+  {id:"m1",name:"Classic Cheeseburger",category:"Main Course",price:160,icon:"🍔",available:true},
+  {id:"m2",name:"French Fries",category:"Starters",price:90,icon:"🍟",available:true},
+  {id:"m3",name:"Cold Coffee",category:"Drinks",price:90,icon:"🥤",available:true},
+  {id:"m4",name:"Paneer Pizza",category:"Main Course",price:220,icon:"🍕",available:true},
+  {id:"m5",name:"Chicken Pasta",category:"Main Course",price:245,icon:"🍝",available:true},
+  {id:"m6",name:"Chocolate Shake",category:"Drinks",price:140,icon:"🥤",available:true}
+ ];
 
+ db.restaurants.push(r);
+ db.current=r.id;
+
+ save();
+
+ rmsg.innerText="✓ Restaurant created successfully.";
+ rmsg.style.color="#0a9865";
+
+ setTimeout(startOwner,600);
 }
 
-
-if(password.length<8){
-
-message.style.color="#d33";
-
-message.innerText=
-"Password must contain at least 8 characters.";
-
-return;
-
-}
-
-
-if(password!==confirm){
-
-message.style.color="#d33";
-
-message.innerText=
-"Passwords do not match.";
-
-return;
-
-}
-
-
-if(
-database.restaurants.some(
-r =>
-r.email.toLowerCase()
-===
-email.toLowerCase()
-)
-){
-
-message.style.color="#d33";
-
-message.innerText=
-"This email is already registered.";
-
-return;
-
-}
-
-
-/* Create restaurant */
-
-const restaurant={
-
-id:
-"REST_"+Date.now(),
-
-name:name,
-
-owner:owner,
-
-email:email,
-
-password:password,
-
-tax:{
-    cgst:2.5,
-    sgst:2.5,
-    service:0
-},
-
-tables:[],
-
-menu:[],
-
-orders:[]
-
-};
-
-
-/* =====================================================
-   CREATE 12 TABLES
-===================================================== */
-
-for(
-let i=1;
-i<=12;
-i++
-){
-
-restaurant.tables.push({
-
-id:
-"TABLE_"+Date.now()+"_"+i,
-
-number:i,
-
-qrToken:
-"QR_"+
-restaurant.id+
-"_TABLE_"+
-i+
-"_"+
-Math.random()
-.toString(36)
-.substring(2,10)
-
-});
-
-}
-
-
-/* =====================================================
-   DEFAULT MENU
-===================================================== */
-
-restaurant.menu=[
-
-{
-id:"MENU_"+Date.now()+"_1",
-name:"Classic Cheeseburger",
-category:"Main Course",
-price:160,
-icon:"🍔",
-available:true
-},
-
-{
-id:"MENU_"+Date.now()+"_2",
-name:"French Fries",
-category:"Starters",
-price:90,
-icon:"🍟",
-available:true
-},
-
-{
-id:"MENU_"+Date.now()+"_3",
-name:"Cold Coffee",
-category:"Drinks",
-price:90,
-icon:"🥤",
-available:true
-},
-
-{
-id:"MENU_"+Date.now()+"_4",
-name:"Paneer Pizza",
-category:"Main Course",
-price:220,
-icon:"🍕",
-available:true
-},
-
-{
-id:"MENU_"+Date.now()+"_5",
-name:"Chicken Pasta",
-category:"Main Course",
-price:245,
-icon:"🍝",
-available:true
-},
-
-{
-id:"MENU_"+Date.now()+"_6",
-name:"Chocolate Shake",
-category:"Drinks",
-price:140,
-icon:"🥤",
-available:true
-}
-
-];
-
-
-database.restaurants.push(
-restaurant
-);
-
-database.currentRestaurant=
-restaurant.id;
-
-save();
-
-
-message.style.color="#0a9b67";
-
-message.innerText=
-"✓ Account created successfully";
-
-
-setTimeout(
-startOwner,
-600
-);
-
-}
-
-
-/* =====================================================
-   LOGIN
-===================================================== */
 
 function login(){
 
-const email =
-document
-.getElementById("loginEmail")
-.value
-.trim()
-.toLowerCase();
+ let email=lemail.value.trim().toLowerCase();
+ let pass=lpass.value;
 
-const password =
-document
-.getElementById("loginPassword")
-.value;
+ let r=db.restaurants.find(
+  x=>x.email===email&&x.password===pass
+ );
 
+ if(!r){
+  lmsg.innerText="Invalid email or password.";
+  lmsg.style.color="#d33";
+  return;
+ }
 
-const restaurant =
-database.restaurants.find(
-r =>
-r.email.toLowerCase()===email
-&&
-r.password===password
-);
-
-
-const message =
-document.getElementById(
-"loginMessage"
-);
-
-
-if(!restaurant){
-
-message.style.color="#d33";
-
-message.innerText=
-"Invalid email or password.";
-
-return;
-
+ db.current=r.id;
+ save();
+ startOwner();
 }
 
 
-database.currentRestaurant=
-restaurant.id;
-
-save();
-
-startOwner();
-
+function logout(){
+ db.current=null;
+ save();
+ location.reload();
 }
 
-
-/* =====================================================
-   START OWNER
-===================================================== */
 
 function startOwner(){
 
-const restaurant=
-currentRestaurant();
+ let r=rest();
+ if(!r)return;
 
-if(!restaurant)
-return;
+ auth.classList.add("hidden");
+ customer.classList.add("hidden");
+ owner.classList.remove("hidden");
 
+ restName.innerText=r.name;
+ ownerName.innerText=r.owner;
+ avatar.innerText=r.owner.slice(0,2).toUpperCase();
 
-document
-.getElementById("authScreen")
-.style.display="none";
-
-document
-.getElementById("customerApp")
-.style.display="none";
-
-document
-.getElementById("ownerApp")
-.style.display="block";
-
-
-document
-.getElementById("restaurantName")
-.innerText=
-restaurant.name;
-
-
-document
-.getElementById("ownerName")
-.innerText=
-restaurant.owner;
-
-
-document
-.getElementById("avatar")
-.innerText=
-restaurant.owner
-.substring(0,2)
-.toUpperCase();
-
-
-openPage("dashboard");
+ page("dashboard");
 
 }
 
 
 /* =====================================================
-   LOGOUT
+PAGE SYSTEM
 ===================================================== */
 
-function logout(){
+function page(name,btn){
 
-database.currentRestaurant=null;
+ document.querySelectorAll(".nav button")
+ .forEach(x=>x.classList.remove("active"));
 
-save();
+ if(btn)btn.classList.add("active");
 
-location.reload();
+ let titles={
+  dashboard:"Dashboard",
+  orders:"Orders",
+  tables:"Tables",
+  menu:"Menu Management",
+  pos:"New Order",
+  kitchen:"Kitchen",
+  qr:"QR Manager",
+  range:"Order Range",
+  billing:"WEBLYFT Billing",
+  settings:"Settings"
+ };
+
+ title.innerText=titles[name];
+
+ let html="";
+
+ if(name==="dashboard")html=dashboard();
+ if(name==="orders")html=orders();
+ if(name==="tables")html=tables();
+ if(name==="menu")html=menu();
+ if(name==="pos")html=pos();
+ if(name==="kitchen")html=kitchen();
+ if(name==="qr")html=qr();
+ if(name==="range")html=rangePage();
+ if(name==="billing")html=billing();
+ if(name==="settings")html=settings();
+
+ content.innerHTML=html;
+
+ if(name==="pos")renderOwnerCart();
 
 }
 
 
 /* =====================================================
-   PAGE NAVIGATION
+DASHBOARD
 ===================================================== */
 
-function openPage(
-page,
-button
-){
+function dashboard(){
 
-document
-.querySelectorAll(".nav button")
-.forEach(
-b=>b.classList.remove("active")
-);
+ let r=rest();
 
+ let active=r.orders.filter(
+  o=>["NEW","ACCEPTED","PREPARING","READY"].includes(o.status)
+ );
 
-if(button)
-button.classList.add("active");
+ let sales=r.orders.reduce(
+  (a,o)=>o.status==="CANCELLED"?a:a+o.total,0
+ );
 
+ return `
 
-const titles={
+ <div class="grid stats">
 
-dashboard:"Dashboard",
-orders:"Active Orders",
-tables:"Table Management",
-menu:"Menu Management",
-pos:"New Order",
-kitchen:"Kitchen / KOT",
-qr:"QR Manager",
-settings:"Settings"
+ <div class="card stat">
+ <span>Today's Sales</span>
+ <strong>${money(sales)}</strong>
+ <i class="greenText">LIVE</i>
+ </div>
 
-};
+ <div class="card stat">
+ <span>Active Orders</span>
+ <strong>${active.length}</strong>
+ <i class="greenText">Kitchen connected</i>
+ </div>
 
+ <div class="card stat">
+ <span>Tables</span>
+ <strong>${r.tables.length}</strong>
+ <i class="greenText">Configured</i>
+ </div>
 
-document
-.getElementById("pageTitle")
-.innerText=
-titles[page];
+ <div class="card stat">
+ <span>WEBLYFT Plan</span>
+ <strong>${r.billing.plan}</strong>
+ <i class="greenText">${r.billing.status}</i>
+ </div>
 
-
-const pages={
-
-dashboard:dashboardPage,
-orders:ordersPage,
-tables:tablesPage,
-menu:menuPage,
-pos:posPage,
-kitchen:kitchenPage,
-qr:qrPage,
-settings:settingsPage
-
-};
+ </div>
 
 
-document
-.getElementById("pageContent")
-.innerHTML=
-pages[page]();
+ <div class="grid two" style="margin-top:16px">
+
+ <div class="card">
+ <div class="cardhead">
+ <h2>Restaurant Overview</h2>
+ <span class="badge green">ONLINE</span>
+ </div>
+
+ <div class="flow">
+ QR Tables: <b>${r.tables.length}</b>
+ </div>
+
+ <div class="flow">
+ Menu Items: <b>${r.menu.length}</b>
+ </div>
+
+ <div class="flow">
+ Ordering Range: <b>${r.range.meters}m</b>
+ </div>
+
+ <div class="flow">
+ Tax: <b>${r.tax.cgst+r.tax.sgst+r.tax.service}%</b>
+ </div>
+
+ </div>
 
 
-if(page==="pos")
-renderOwnerCart();
+ <div class="card">
+ <div class="cardhead">
+ <h2>Recent Orders</h2>
+ <span class="badge blue">${r.orders.length}</span>
+ </div>
 
+ ${
+  r.orders.slice(-6).reverse().map(orderHTML).join("")
+  ||
+  `<p class="muted">No orders yet.</p>`
+ }
+
+ </div>
+
+ </div>
+ `;
 }
 
-
-/* =====================================================
-   DASHBOARD
-===================================================== */
-
-function dashboardPage(){
-
-const r=currentRestaurant();
-
-const active=
-r.orders.filter(
-o =>
-[
-"NEW",
-"ACCEPTED",
-"PREPARING",
-"READY"
-]
-.includes(o.status)
-);
-
-
-const occupied=
-new Set(
-active.map(
-o=>o.table
-)
-).size;
-
-
-const sales=
-r.orders.reduce(
-(total,o)=>
-o.status!=="CANCELLED"
-?
-total+o.total
-:
-total,
-0
-);
-
-
-return `
-
-<div class="grid stats">
-
-<div class="card stat">
-
-<span>
-Today's Sales
-</span>
-
-<strong>
-${money(sales)}
-</strong>
-
-<em class="green-text">
-Live
-</em>
-
-</div>
-
-
-<div class="card stat">
-
-<span>
-Active Orders
-</span>
-
-<strong>
-${active.length}
-</strong>
-
-<em class="green-text">
-Kitchen connected
-</em>
-
-</div>
-
-
-<div class="card stat">
-
-<span>
-Tables Occupied
-</span>
-
-<strong>
-${occupied}/${r.tables.length}
-</strong>
-
-<em class="green-text">
-Live status
-</em>
-
-</div>
-
-
-<div class="card stat">
-
-<span>
-Menu Items
-</span>
-
-<strong>
-${r.menu.length}
-</strong>
-
-<em class="green-text">
-Catalogue
-</em>
-
-</div>
-
-</div>
-
-
-<div
-class="grid two"
-style="margin-top:16px"
->
-
-<div class="card">
-
-<div class="card-head">
-
-<h2>
-Sales Overview
-</h2>
-
-<span class="muted">
-Performance
-</span>
-
-</div>
-
-<div class="chart">
-
-${[45,60,50,75,62,88,70]
-.map(
-(h,i)=>`
-
-<div class="bar-wrap">
-
-<div
-class="bar"
-style="height:${h}%"
-></div>
-
-<small>
-${["M","T","W","T","F","S","S"][i]}
-</small>
-
-</div>
-
-`
-).join("")}
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-head">
-
-<h2>
-Recent Orders
-</h2>
-
-<button
-class="secondary"
-onclick="openPage('orders')"
->
-View all
-</button>
-
-</div>
-
-${
-r.orders
-.slice()
-.reverse()
-.slice(0,6)
-.map(orderHTML)
-.join("")
-||
-`
-<p class="muted">
-No orders yet.
-</p>
-`
-}
-
-</div>
-
-</div>
-
-`;
-
-}
-
-
-/* =====================================================
-   ORDER HTML
-===================================================== */
 
 function orderHTML(o){
 
-return `
+ return `
+ <div class="order">
 
-<div class="order-row">
+ <div class="ticon">T${o.table}</div>
 
-<div class="table-icon">
-T${o.table}
-</div>
+ <div>
+ <b>#${o.id.slice(-6)}</b>
+ <small>${o.items.map(x=>x.name+" × "+x.qty).join(", ")}</small>
+ </div>
 
-<div>
+ <span class="badge">${o.status}</span>
 
-<b>
-Order #${o.id.slice(-6)}
-</b>
+ <strong>${money(o.total)}</strong>
 
-<small>
-${o.items
-.map(
-x=>x.name+" × "+x.qty
-)
-.join(", ")}
-</small>
-
-</div>
-
-<span
-class="badge
-${o.status==="READY"?"green":""}
-${o.status==="SERVED"?"blue":""}"
->
-${o.status}
-</span>
-
-<strong>
-${money(o.total)}
-</strong>
-
-</div>
-
-`;
-
+ </div>
+ `;
 }
 
 
 /* =====================================================
-   ORDERS
+ORDERS
 ===================================================== */
 
-function ordersPage(){
+function orders(){
 
-const r=currentRestaurant();
+ let r=rest();
 
-return `
+ return `
+ <div class="card">
 
-<div class="card">
+ <div class="cardhead">
+ <h2>Orders</h2>
+ <span class="badge green">LIVE</span>
+ </div>
 
-<div class="card-head">
+ ${
+  r.orders.slice().reverse().map(o=>`
 
-<h2>
-Orders
-</h2>
+   <div class="order">
 
-<span class="badge green">
-LIVE
-</span>
+   <div class="ticon">T${o.table}</div>
 
-</div>
+   <div>
+   <b>Order #${o.id.slice(-6)}</b>
+   <small>${o.items.map(x=>x.name+" × "+x.qty).join(", ")}</small>
+   </div>
 
-${
-r.orders
-.slice()
-.reverse()
-.map(
-o=>`
+   <span class="badge">${o.status}</span>
 
-<div class="order-row">
+   <button class="primary"
+   onclick="advance('${o.id}')">
+   UPDATE
+   </button>
 
-<div class="table-icon">
-T${o.table}
-</div>
+   </div>
 
-<div>
+  `).join("")
+  ||
+  `<p class="muted">No orders.</p>`
+ }
 
-<b>
-Order #${o.id.slice(-6)}
-</b>
-
-<small>
-${o.items
-.map(
-x=>x.name+" × "+x.qty
-)
-.join(", ")}
-</small>
-
-</div>
-
-<span class="badge">
-${o.status}
-</span>
-
-<button
-class="primary"
-onclick="updateOrder('${o.id}')"
->
-UPDATE
-</button>
-
-</div>
-
-`
-)
-.join("")
-||
-`
-<p class="muted">
-No orders found.
-</p>
-`
+ </div>
+ `;
 }
 
-</div>
 
-`;
+function advance(id){
 
+ let r=rest();
+ let o=r.orders.find(x=>x.id===id);
+ if(!o)return;
+
+ let next={
+  NEW:"ACCEPTED",
+  ACCEPTED:"PREPARING",
+  PREPARING:"READY",
+  READY:"SERVED"
+ };
+
+ let n=next[o.status];
+
+ if(!n)return;
+
+ if(n==="PREPARING"){
+
+  let min=Number(
+   prompt("Chef preparation time (minutes):","20")
+  );
+
+  if(!min)return;
+
+  o.eta=min*60;
+  o.etaStart=Date.now();
+ }
+
+ o.status=n;
+
+ save();
+
+ page("orders");
 }
 
 
 /* =====================================================
-   UPDATE ORDER
+TABLES
 ===================================================== */
 
-function updateOrder(id){
+function tables(){
 
-const r=currentRestaurant();
+ let r=rest();
 
-const order=
-r.orders.find(
-o=>o.id===id
-);
+ return `
+ <div class="card">
 
-if(!order)
-return;
+ <div class="cardhead">
+ <div>
+ <h2>Table Management</h2>
+ <span class="muted">Each table has a unique QR.</span>
+ </div>
 
+ <button class="primary" onclick="addTable()">
+ + ADD TABLE
+ </button>
+ </div>
 
-const next={
+ <div class="tablegrid">
 
-NEW:"ACCEPTED",
+ ${
+  r.tables.map(t=>{
 
-ACCEPTED:"PREPARING",
+   let busy=r.orders.some(
+    o=>o.table===t.number &&
+    ["NEW","ACCEPTED","PREPARING","READY"].includes(o.status)
+   );
 
-PREPARING:"READY",
+   return `
+   <div class="table ${busy?"busy":""}">
+   <b>Table ${t.number}</b>
+   <span>${busy?"Occupied":"Available"}</span>
 
-READY:"SERVED"
+   <button class="outline"
+   style="margin-top:15px"
+   onclick="selectedTable=${t.number};page('qr')">
+   VIEW QR
+   </button>
+   </div>
+   `;
 
-}[order.status];
+  }).join("")
+ }
 
-
-if(!next)
-return;
-
-
-if(next==="PREPARING"){
-
-const mins=
-Number(
-prompt(
-"Chef preparation time in minutes:",
-"20"
-)
-);
-
-if(!mins)
-return;
-
-order.etaSeconds=
-mins*60;
-
-order.etaStarted=
-Date.now();
-
+ </div>
+ </div>
+ `;
 }
 
-
-order.status=
-next;
-
-save();
-
-openPage("orders");
-
-}
-
-
-/* =====================================================
-   TABLES
-===================================================== */
-
-function tablesPage(){
-
-const r=currentRestaurant();
-
-return `
-
-<div class="card">
-
-<div class="card-head">
-
-<div>
-
-<h2>
-Tables
-</h2>
-
-<span class="muted">
-Every table has its own QR
-</span>
-
-</div>
-
-<button
-class="primary"
-onclick="addTable()"
->
-＋ ADD TABLE
-</button>
-
-</div>
-
-
-<div class="table-grid">
-
-${r.tables
-.map(
-table=>{
-
-const busy=
-r.orders.some(
-o =>
-o.table===table.number
-&&
-[
-"NEW",
-"ACCEPTED",
-"PREPARING",
-"READY"
-]
-.includes(o.status)
-);
-
-
-return `
-
-<div
-class="table-card
-${busy?"busy":""}"
->
-
-<b>
-Table ${table.number}
-</b>
-
-<span>
-${busy?"Occupied":"Available"}
-</span>
-
-<small>
-
-<button
-class="outline"
-onclick="
-selectedTable=${table.number};
-openPage('qr')
-"
->
-⌗ QR
-</button>
-
-</small>
-
-</div>
-
-`;
-
-}
-)
-.join("")}
-
-</div>
-
-</div>
-
-`;
-
-}
-
-
-/* =====================================================
-   ADD TABLE
-===================================================== */
 
 function addTable(){
 
-const r=currentRestaurant();
+ let r=rest();
 
-const number=
-Number(
-prompt("Enter table number:")
-);
+ let n=Number(prompt("Table number:"));
 
-if(!number)
-return;
+ if(!n)return;
 
+ if(r.tables.some(t=>t.number===n)){
+  alert("Table already exists.");
+  return;
+ }
 
-if(
-r.tables.some(
-t=>t.number===number
-)
-){
+ r.tables.push({
+  number:n,
+  token:"QR_"+r.id+"_T"+n+"_"+Date.now()
+ });
 
-alert(
-"That table already exists."
-);
-
-return;
-
-}
-
-
-r.tables.push({
-
-id:
-"TABLE_"+Date.now(),
-
-number:number,
-
-qrToken:
-"QR_"+
-r.id+
-"_TABLE_"+
-number+
-"_"+Date.now()
-
-});
-
-
-save();
-
-openPage("tables");
-
+ save();
+ page("tables");
 }
 
 
 /* =====================================================
-   MENU PAGE
+MENU
 ===================================================== */
 
-function menuPage(){
+function menu(){
 
-const r=currentRestaurant();
+ let r=rest();
 
-return `
+ return `
+ <div class="card">
 
-<div class="card">
+ <div class="cardhead">
+ <h2>Menu Management</h2>
 
-<div class="card-head">
+ <button class="primary" onclick="addItem()">
+ + ADD ITEM
+ </button>
+ </div>
 
-<div>
+ <input class="search"
+ placeholder="⌕ Search menu..."
+ oninput="filterRows(this,'menulist')">
 
-<h2>
-Menu Management
-</h2>
+ <div id="menulist">
 
-<span class="muted">
-Manage food items and prices.
-</span>
+ ${
+  r.menu.map(x=>`
 
-</div>
+  <div class="menurow">
 
-<button
-class="primary"
-onclick="addMenuItem()"
->
-＋ ADD ITEM
-</button>
+  <div class="food">${x.icon}</div>
 
-</div>
+  <div>
+  <b>${x.name}</b>
+  <small>${x.category} · ${x.available?"Available":"Disabled"}</small>
+  </div>
+
+  <strong>${money(x.price)}</strong>
+
+  <button class="outline"
+  onclick="toggleItem('${x.id}')">
+  ${x.available?"DISABLE":"ENABLE"}
+  </button>
+
+  </div>
+
+  `).join("")
+ }
+
+ </div>
+ </div>
+ `;
+}
 
 
-<input
-class="search"
-placeholder="⌕ Search menu..."
-oninput="filterMenu(this.value)"
->
+function filterRows(input,id){
+
+ let q=input.value.toLowerCase();
+
+ document.querySelectorAll("#"+id+" .menurow")
+ .forEach(x=>{
+  x.style.display=x.innerText.toLowerCase().includes(q)?"grid":"none";
+ });
+}
 
 
-<div id="menuList">
+function addItem(){
 
-${r.menu
-.map(
-item=>`
+ let r=rest();
 
-<div class="menu-row">
+ let name=prompt("Food name:");
+ if(!name)return;
 
-<div class="food-icon">
-${item.icon}
-</div>
+ let price=Number(prompt("Price:"));
+ if(!price)return;
 
-<div>
+ let category=prompt("Category:","Main Course");
+ let icon=prompt("Emoji:","🍽️");
 
-<b>
-${item.name}
-</b>
+ r.menu.push({
+  id:"m_"+Date.now(),
+  name,
+  price,
+  category:category||"Main Course",
+  icon:icon||"🍽️",
+  available:true
+ });
 
-<small>
-${item.category}
-·
-${item.available?"Available":"Unavailable"}
-</small>
+ save();
+ page("menu");
+}
 
-</div>
 
-<strong>
-${money(item.price)}
-</strong>
+function toggleItem(id){
 
-<button
-class="outline"
-onclick="
-toggleMenu('${item.id}')
-"
->
-${item.available?"DISABLE":"ENABLE"}
-</button>
+ let r=rest();
+ let x=r.menu.find(x=>x.id===id);
 
-</div>
+ if(x)x.available=!x.available;
 
-`
-)
-.join("")}
-
-</div>
-
-</div>
-
-`;
-
+ save();
+ page("menu");
 }
 
 
 /* =====================================================
-   MENU SEARCH
+OWNER POS
 ===================================================== */
 
-function filterMenu(query){
+function pos(){
 
-document
-.querySelectorAll("#menuList .menu-row")
-.forEach(
-row=>{
+ let r=rest();
 
-row.style.display=
-row.innerText
-.toLowerCase()
-.includes(
-query.toLowerCase()
-)
-?
-"grid"
-:
-"none";
+ return `
+ <div class="grid two">
 
-}
-);
+ <div class="card">
 
-}
+ <div class="cardhead">
+ <h2>New Order</h2>
+ <span class="badge blue">TABLE ${selectedTable}</span>
+ </div>
 
+ <input class="search"
+ placeholder="⌕ Search food..."
+ oninput="filterRows(this,'poslist')">
 
-/* =====================================================
-   ADD MENU
-===================================================== */
+ <div id="poslist">
 
-function addMenuItem(){
+ ${
+  r.menu.filter(x=>x.available).map(x=>`
 
-const r=currentRestaurant();
+  <div class="menurow">
 
-const name=
-prompt("Food item name:");
+  <div class="food">${x.icon}</div>
 
-if(!name)
-return;
+  <div>
+  <b>${x.name}</b>
+  <small>${x.category}</small>
+  </div>
 
+  <strong>${money(x.price)}</strong>
 
-const price=
-Number(
-prompt("Price:")
-);
+  <button class="outline"
+  onclick="addOwner('${x.id}')">
+  ADD
+  </button>
 
-if(!price)
-return;
+  </div>
 
+  `).join("")
+ }
 
-const category=
-prompt(
-"Category:",
-"Main Course"
-);
+ </div>
+ </div>
 
+ <div class="card">
 
-const icon=
-prompt(
-"Emoji:",
-"🍽️"
-);
+ <div class="cardhead">
+ <h2>Cart</h2>
+ </div>
 
+ <div id="ownerCart"></div>
 
-r.menu.push({
+ </div>
 
-id:
-"MENU_"+Date.now(),
-
-name:name,
-
-category:
-category||"Main Course",
-
-price:price,
-
-icon:
-icon||"🍽️",
-
-available:true
-
-});
-
-
-save();
-
-openPage("menu");
-
+ </div>
+ `;
 }
 
 
-/* =====================================================
-   TOGGLE MENU
-===================================================== */
+function addOwner(id){
 
-function toggleMenu(id){
+ let r=rest();
+ let item=r.menu.find(x=>x.id===id);
 
-const r=currentRestaurant();
+ if(!item)return;
 
-const item=
-r.menu.find(
-x=>x.id===id
-);
+ let old=ownerCart.find(x=>x.id===id);
 
-if(item)
-item.available=
-!item.available;
+ if(old)old.qty++;
+ else ownerCart.push({...item,qty:1});
 
-save();
-
-openPage("menu");
-
-}
-
-
-/* =====================================================
-   OWNER POS
-===================================================== */
-
-function posPage(){
-
-const r=currentRestaurant();
-
-return `
-
-<div class="grid pos-grid">
-
-<div class="card">
-
-<div class="card-head">
-
-<h2>
-New Order
-</h2>
-
-<span class="badge blue">
-TABLE ${selectedTable}
-</span>
-
-</div>
-
-
-<input
-class="search"
-placeholder="⌕ Search food..."
-oninput="filterPOS(this.value)"
->
-
-
-<div id="posList">
-
-${r.menu
-.filter(x=>x.available)
-.map(
-item=>`
-
-<div class="menu-row">
-
-<div class="food-icon">
-${item.icon}
-</div>
-
-<div>
-
-<b>
-${item.name}
-</b>
-
-<small>
-${item.category}
-</small>
-
-</div>
-
-<strong>
-${money(item.price)}
-</strong>
-
-<button
-class="outline"
-onclick="
-addOwnerCart('${item.id}')
-"
->
-ADD
-</button>
-
-</div>
-
-`
-)
-.join("")}
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-head">
-
-<h2>
-Cart
-</h2>
-
-</div>
-
-<div id="ownerCart"></div>
-
-</div>
-
-</div>
-
-`;
-
-}
-
-
-/* =====================================================
-   POS SEARCH
-===================================================== */
-
-function filterPOS(query){
-
-document
-.querySelectorAll("#posList .menu-row")
-.forEach(
-row=>{
-
-row.style.display=
-row.innerText
-.toLowerCase()
-.includes(
-query.toLowerCase()
-)
-?
-"grid"
-:
-"none";
-
-}
-);
-
-}
-
-
-/* =====================================================
-   OWNER CART
-===================================================== */
-
-function addOwnerCart(id){
-
-const r=currentRestaurant();
-
-const item=
-r.menu.find(
-x=>x.id===id
-);
-
-if(!item)
-return;
-
-
-const existing=
-ownerCart.find(
-x=>x.id===id
-);
-
-if(existing)
-existing.qty++;
-
-else
-ownerCart.push({
-...item,
-qty:1
-});
-
-
-renderOwnerCart();
-
+ renderOwnerCart();
 }
 
 
 function renderOwnerCart(){
 
-const box=
-document.getElementById(
-"ownerCart"
-);
+ let box=document.getElementById("ownerCart");
+ if(!box)return;
 
-if(!box)
-return;
+ if(!ownerCart.length){
+  box.innerHTML=`<p class="muted">Cart is empty.</p>`;
+  return;
+ }
 
+ let r=rest();
 
-if(!ownerCart.length){
+ let subtotal=ownerCart.reduce(
+  (a,x)=>a+x.price*x.qty,0
+ );
 
-box.innerHTML=
-`
-<p class="muted">
-Cart is empty.
-</p>
-`;
+ let tax=subtotal*
+ (r.tax.cgst+r.tax.sgst+r.tax.service)/100;
 
-return;
+ let total=subtotal+tax;
 
+ box.innerHTML=
+
+ ownerCart.map((x,i)=>`
+
+ <div class="cartrow">
+
+ <span>${x.icon}</span>
+
+ <div>
+ <b>${x.name}</b>
+ <small>${money(x.price)}</small>
+ </div>
+
+ <div class="qty">
+
+ <button onclick="
+ ownerCart[${i}].qty--;
+ if(ownerCart[${i}].qty<=0)ownerCart.splice(${i},1);
+ renderOwnerCart()
+ ">−</button>
+
+ ${x.qty}
+
+ <button onclick="
+ ownerCart[${i}].qty++;
+ renderOwnerCart()
+ ">+</button>
+
+ </div>
+
+ </div>
+
+ `).join("")+
+
+ `
+
+ <div style="margin-top:14px">
+
+ <div class="bill">
+ <span>Subtotal</span>
+ <b>${money(subtotal)}</b>
+ </div>
+
+ <div class="bill">
+ <span>Tax</span>
+ <b>${money(tax)}</b>
+ </div>
+
+ <div class="bill total">
+ <span>Total</span>
+ <b>${money(total)}</b>
+ </div>
+
+ <button class="primary full"
+ onclick="ownerOrder()">
+ SEND TO KITCHEN →
+ </button>
+
+ </div>
+ `;
 }
 
 
-const r=currentRestaurant();
+function ownerOrder(){
 
-const subtotal=
-ownerCart.reduce(
-(a,x)=>
-a+
-Number(x.price)*x.qty,
-0
-);
+ if(!ownerCart.length)return;
 
+ let r=rest();
 
-const taxRate=
-Number(r.tax.cgst)+
-Number(r.tax.sgst)+
-Number(r.tax.service);
+ let subtotal=ownerCart.reduce(
+  (a,x)=>a+x.price*x.qty,0
+ );
 
+ let tax=subtotal*
+ (r.tax.cgst+r.tax.sgst+r.tax.service)/100;
 
-const tax=
-subtotal*taxRate/100;
+ r.orders.push({
+  id:"ORD_"+Date.now(),
+  table:selectedTable,
+  items:ownerCart.map(x=>({
+   name:x.name,
+   price:x.price,
+   qty:x.qty
+  })),
+  subtotal,
+  tax,
+  total:subtotal+tax,
+  status:"NEW",
+  eta:0,
+  etaStart:null,
+  created:Date.now(),
+  source:"OWNER"
+ });
 
+ ownerCart=[];
+ save();
 
-const total=
-subtotal+tax;
-
-
-box.innerHTML=
-
-ownerCart
-.map(
-(item,index)=>`
-
-<div class="cart-row">
-
-<span>
-${item.icon}
-</span>
-
-<div>
-
-<b>
-${item.name}
-</b>
-
-<small>
-${money(item.price)}
-</small>
-
-</div>
-
-<div class="qty">
-
-<button
-onclick="
-ownerCart[${index}].qty--;
-if(ownerCart[${index}].qty<=0)
-ownerCart.splice(${index},1);
-renderOwnerCart();
-"
->
-−
-</button>
-
-${item.qty}
-
-<button
-onclick="
-ownerCart[${index}].qty++;
-renderOwnerCart();
-"
->
-+
-</button>
-
-</div>
-
-</div>
-
-`
-)
-.join("")
-
-+
-
-`
-
-<div style="margin-top:15px">
-
-<div class="bill">
-<span>Subtotal</span>
-<b>${money(subtotal)}</b>
-</div>
-
-<div class="bill">
-<span>Tax</span>
-<b>${money(tax)}</b>
-</div>
-
-<div class="bill total">
-<span>Total</span>
-<b>${money(total)}</b>
-</div>
-
-<button
-class="primary full"
-onclick="sendOwnerOrder()"
->
-SEND TO KITCHEN →
-</button>
-
-</div>
-
-`;
-
+ alert("✓ Order sent to kitchen.");
+ page("kitchen");
 }
 
 
 /* =====================================================
-   OWNER ORDER
+KITCHEN
 ===================================================== */
 
-function sendOwnerOrder(){
+function kitchen(){
 
-if(!ownerCart.length)
-return;
+ let r=rest();
+
+ let active=r.orders.filter(
+  x=>["NEW","ACCEPTED","PREPARING","READY"].includes(x.status)
+ ).reverse();
+
+ return `
+ <div class="card">
+
+ <div class="cardhead">
+ <h2>Kitchen / KOT</h2>
+ <span class="badge green">LIVE</span>
+ </div>
+
+ ${
+  active.map(o=>`
+
+  <div class="order">
+
+  <div class="ticon">T${o.table}</div>
+
+  <div>
+  <b>#${o.id.slice(-6)}</b>
+  <small>${o.items.map(x=>x.name+" × "+x.qty).join(", ")}</small>
+  </div>
+
+  <span class="badge">${o.status}</span>
+
+  <button class="primary"
+  onclick="advance('${o.id}')">
+  UPDATE
+  </button>
+
+  </div>
+
+  `).join("")
+  ||
+  `<p class="muted">Kitchen is clear.</p>`
+ }
+
+ </div>
+ `;
+}
 
 
-const r=currentRestaurant();
+/* =====================================================
+QR
+===================================================== */
 
-const subtotal=
-ownerCart.reduce(
-(a,x)=>
-a+
-Number(x.price)*x.qty,
-0
-);
+function qr(){
+
+ let r=rest();
+
+ let t=r.tables.find(x=>x.number===selectedTable)||r.tables[0];
+
+ if(!t)return `<div class="card">No tables.</div>`;
+
+ let url=
+ location.href.split("?")[0]+
+ "?customer=1"+
+ "&restaurant="+encodeURIComponent(r.id)+
+ "&table="+encodeURIComponent(t.token);
+
+ let image=
+ "https://api.qrserver.com/v1/create-qr-code/?size=500x500&data="+
+ encodeURIComponent(url);
+
+ return `
+ <div class="qrgrid">
+
+ <div class="card qr">
+
+ <div class="cardhead">
+ <h2>Table ${t.number} QR</h2>
+ <span class="badge green">UNIQUE</span>
+ </div>
+
+ <img src="${image}">
+
+ <p class="muted" style="word-break:break-all">
+ ${url}
+ </p>
+
+ <button class="primary"
+ style="margin-top:12px"
+ onclick="openCustomer('${r.id}','${t.token}')">
+ OPEN CUSTOMER MENU
+ </button>
+
+ </div>
 
 
-const taxRate=
-Number(r.tax.cgst)+
-Number(r.tax.sgst)+
-Number(r.tax.service);
+ <div class="card">
+
+ <h2>QR Flow</h2>
+
+ <div class="flow">01 · Customer enters restaurant</div>
+ <div class="flow">02 · Sits at assigned table</div>
+ <div class="flow">03 · Scans table QR</div>
+ <div class="flow">04 · QR identifies restaurant + table</div>
+ <div class="flow">05 · Location/range verification</div>
+ <div class="flow">06 · Customer orders food</div>
+ <div class="flow">07 · Kitchen receives KOT</div>
+ <div class="flow">08 · Chef sets ETA</div>
+ <div class="flow">09 · Customer sees countdown</div>
+
+ </div>
+ </div>
+ `;
+}
 
 
-const tax=
-subtotal*taxRate/100;
+/* =====================================================
+ORDER RANGE
+===================================================== */
+
+function rangePage(){
+
+ let r=rest();
+
+ return `
+ <div class="grid two">
+
+ <div class="card">
+
+ <div class="cardhead">
+ <h2>Customer Ordering Range</h2>
+ <span class="badge blue">LOCATION</span>
+ </div>
+
+ <p class="muted">
+ Customers can only place orders inside this radius.
+ </p>
+
+ <br>
+
+ <label class="muted">
+ RANGE IN METERS
+ </label>
+
+ <input id="rangeInput"
+ class="input"
+ type="number"
+ min="10"
+ max="5000"
+ value="${r.range.meters}">
+
+ <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+
+ <button class="secondary"
+ onclick="rangeInput.value=50">50m</button>
+
+ <button class="secondary"
+ onclick="rangeInput.value=100">100m</button>
+
+ <button class="secondary"
+ onclick="rangeInput.value=250">250m</button>
+
+ <button class="secondary"
+ onclick="rangeInput.value=500">500m</button>
+
+ </div>
+
+ <br>
+
+ <button class="primary"
+ onclick="saveRange()">
+ SAVE RANGE
+ </button>
+
+ </div>
 
 
-const order={
+ <div class="card">
 
-id:
-"ORDER_"+Date.now(),
+ <h2>Restaurant Location</h2>
 
-table:
-selectedTable,
+ <div class="flow">
+ Latitude:
+ <b>${r.range.lat??"Not set"}</b>
+ </div>
 
-items:
-ownerCart.map(
-x=>({
-name:x.name,
-price:x.price,
-qty:x.qty
-})
-),
+ <div class="flow">
+ Longitude:
+ <b>${r.range.lng??"Not set"}</b>
+ </div>
 
-subtotal:subtotal,
+ <button class="primary"
+ onclick="setLocation()">
+ USE MY CURRENT LOCATION
+ </button>
 
-tax:tax,
+ <p class="muted" style="margin-top:10px">
+ Browser location permission is required.
+ </p>
 
-total:
-subtotal+tax,
+ </div>
 
-status:"NEW",
+ </div>
 
-etaSeconds:0,
 
-etaStarted:null,
+ <div class="card" style="margin-top:16px">
 
-createdAt:Date.now(),
+ <h2>Ordering Protection</h2>
 
-source:"OWNER_POS"
+ <div class="flow">
+ 📍 Restaurant location is stored.
+ </div>
 
+ <div class="flow">
+ 📏 Owner chooses maximum ordering radius.
+ </div>
+
+ <div class="flow">
+ 📱 Customer scans table QR.
+ </div>
+
+ <div class="flow">
+ 🌐 Customer location is checked.
+ </div>
+
+ <div class="flow">
+ ✅ Inside radius → ordering allowed.
+ </div>
+
+ <div class="flow">
+ ❌ Outside radius → ordering blocked.
+ </div>
+
+ </div>
+ `;
+}
+
+
+function saveRange(){
+
+ let r=rest();
+
+ let n=Number(rangeInput.value);
+
+ if(n<10||n>5000){
+  alert("Range must be between 10m and 5000m.");
+  return;
+ }
+
+ r.range.meters=n;
+ r.range.enabled=true;
+
+ save();
+
+ alert("✓ Ordering range saved.");
+ page("range");
+}
+
+
+function setLocation(){
+
+ if(!navigator.geolocation){
+  alert("Geolocation is not supported.");
+  return;
+ }
+
+ navigator.geolocation.getCurrentPosition(
+
+  p=>{
+
+   let r=rest();
+
+   r.range.lat=p.coords.latitude;
+   r.range.lng=p.coords.longitude;
+   r.range.enabled=true;
+
+   save();
+
+   alert("✓ Restaurant location saved.");
+
+   page("range");
+
+  },
+
+  ()=>alert(
+   "Location permission was not granted."
+  ),
+
+  {
+   enableHighAccuracy:true,
+   timeout:10000,
+   maximumAge:0
+  }
+
+ );
+}
+
+
+/* =====================================================
+DISTANCE
+===================================================== */
+
+function distance(lat1,lon1,lat2,lon2){
+
+ const R=6371000;
+
+ let dLat=(lat2-lat1)*Math.PI/180;
+ let dLon=(lon2-lon1)*Math.PI/180;
+
+ let a=
+ Math.sin(dLat/2)**2+
+ Math.cos(lat1*Math.PI/180)*
+ Math.cos(lat2*Math.PI/180)*
+ Math.sin(dLon/2)**2;
+
+ return R*2*Math.atan2(
+  Math.sqrt(a),
+  Math.sqrt(1-a)
+ );
+}
+
+
+function checkRange(r){
+
+ if(
+  !r.range.enabled||
+  r.range.lat===null||
+  r.range.lng===null
+ ){
+  return Promise.resolve(true);
+ }
+
+ return new Promise(resolve=>{
+
+  navigator.geolocation.getCurrentPosition(
+
+   p=>{
+
+    let d=distance(
+     r.range.lat,
+     r.range.lng,
+     p.coords.latitude,
+     p.coords.longitude
+    );
+
+    resolve(d<=r.range.meters);
+
+   },
+
+   ()=>resolve(false),
+
+   {
+    enableHighAccuracy:true,
+    timeout:10000,
+    maximumAge:0
+   }
+
+  );
+
+ });
+}
+
+
+/* =====================================================
+WEBLYFT BILLING
+===================================================== */
+
+const plans={
+ FREE:{
+  price:0,
+  features:["Digital Menu","Basic QR","Basic Orders"]
+ },
+ PRO:{
+  price:999,
+  features:[
+   "Digital Menu",
+   "Unlimited QR",
+   "Customer Orders",
+   "Kitchen/KOT",
+   "ETA",
+   "Analytics",
+   "Ordering Range"
+  ]
+ },
+ BUSINESS:{
+  price:1999,
+  features:[
+   "Everything in PRO",
+   "Staff Accounts",
+   "Multiple Branches",
+   "Advanced Analytics",
+   "Priority Support"
+  ]
+ }
 };
 
 
-r.orders.push(order);
+function billing(){
 
-ownerCart=[];
+ let r=rest();
+ let b=r.billing;
 
-save();
+ return `
+ <div class="grid two">
 
-alert(
-"✓ Order sent to kitchen."
-);
+ <div class="card">
 
-openPage("kitchen");
+ <div class="cardhead">
 
+ <h2>WEBLYFT Subscription</h2>
+
+ <span class="badge green">
+ ${b.status}
+ </span>
+
+ </div>
+
+ <div class="flow">
+ Current Plan:
+ <b>${b.plan}</b>
+ </div>
+
+ <div class="flow">
+ Monthly Amount:
+ <b>${money(b.amount)}</b>
+ </div>
+
+ <div class="flow">
+ Next Payment:
+ <b>
+ ${
+  b.nextPayment
+  ?
+  new Date(b.nextPayment).toLocaleDateString("en-IN")
+  :
+  "Not scheduled"
+ }
+ </b>
+ </div>
+
+ </div>
+
+
+ <div class="card">
+
+ <h2>Payment History</h2>
+
+ <br>
+
+ ${
+  b.history.length
+  ?
+  b.history.slice().reverse().map(x=>`
+
+  <div class="order">
+
+  <div class="ticon">₹</div>
+
+  <div>
+  <b>${x.plan} Plan</b>
+  <small>${x.date}</small>
+  </div>
+
+  <span class="badge green">${x.status}</span>
+
+  <strong>${money(x.amount)}</strong>
+
+  </div>
+
+  `).join("")
+  :
+  `<p class="muted">No payments yet.</p>`
+ }
+
+ </div>
+
+ </div>
+
+
+ <div class="card" style="margin-top:16px">
+
+ <div class="cardhead">
+ <h2>Choose WEBLYFT Plan</h2>
+ </div>
+
+ <div class="grid stats">
+
+ ${
+  Object.keys(plans).map(name=>`
+
+  <div class="card">
+
+  <span class="badge blue">${name}</span>
+
+  <h2 style="margin:12px 0">
+  ${money(plans[name].price)}
+  <small class="muted">/month</small>
+  </h2>
+
+  ${
+   plans[name].features.map(f=>
+   `<p class="muted" style="margin:7px 0">✓ ${f}</p>`
+   ).join("")
+  }
+
+  <button
+  class="primary full"
+  style="margin-top:12px"
+  onclick="choosePlan('${name}')">
+
+  ${b.plan===name?"CURRENT PLAN":"SELECT PLAN"}
+
+  </button>
+
+  </div>
+
+  `).join("")
+ }
+
+ </div>
+
+ </div>
+ `;
+}
+
+
+function choosePlan(name){
+
+ let r=rest();
+ let p=plans[name];
+
+ if(r.billing.plan===name){
+  alert("This is already your current plan.");
+  return;
+ }
+
+ if(name==="FREE"){
+
+  r.billing.plan="FREE";
+  r.billing.amount=0;
+  r.billing.status="ACTIVE";
+  r.billing.nextPayment=null;
+
+  save();
+  page("billing");
+  return;
+ }
+
+
+ /*
+ DEMO PAYMENT FLOW.
+ Real payment gateway should be connected
+ through secure backend.
+ */
+
+ let ok=confirm(
+  "WEBLYFT "+name+
+  "\n\nAmount: ₹"+p.price+
+  "/month\n\nContinue with payment?"
+ );
+
+ if(!ok)return;
+
+
+ r.billing.plan=name;
+ r.billing.amount=p.price;
+ r.billing.status="ACTIVE";
+
+ let next=new Date();
+ next.setMonth(next.getMonth()+1);
+
+ r.billing.nextPayment=next.toISOString();
+
+ r.billing.history.push({
+  plan:name,
+  amount:p.price,
+  status:"PAID",
+  date:new Date().toLocaleDateString("en-IN")
+ });
+
+ save();
+
+ alert(
+  "✓ Payment successful\n\n"+
+  "WEBLYFT "+name+
+  " plan activated."
+ );
+
+ page("billing");
 }
 
 
 /* =====================================================
-   KITCHEN
+SETTINGS
 ===================================================== */
 
-function kitchenPage(){
+function settings(){
 
-const r=currentRestaurant();
+ let r=rest();
 
-const orders=
-r.orders
-.filter(
-o =>
-[
-"NEW",
-"ACCEPTED",
-"PREPARING",
-"READY"
-]
-.includes(o.status)
-)
-.reverse();
+ return `
+ <div class="grid two">
 
+ <div class="card">
 
-return `
+ <h2>Restaurant Profile</h2>
 
-<div class="card">
+ <div class="flow">
+ Restaurant:
+ <b>${r.name}</b>
+ </div>
 
-<div class="card-head">
+ <div class="flow">
+ Owner:
+ <b>${r.owner}</b>
+ </div>
 
-<h2>
-Kitchen / KOT
-</h2>
+ <div class="flow">
+ Email:
+ <b>${r.email}</b>
+ </div>
 
-<span class="badge green">
-LIVE
-</span>
-
-</div>
+ </div>
 
 
-${
-orders
-.map(
-o=>`
+ <div class="card">
 
-<div class="order-row">
+ <h2>Tax Settings</h2>
 
-<div class="table-icon">
-T${o.table}
-</div>
+ <br>
 
-<div>
+ <label class="muted">
+ CGST %
+ </label>
 
-<b>
-Order #${o.id.slice(-6)}
-</b>
+ <input id="cgst"
+ class="input"
+ type="number"
+ value="${r.tax.cgst}">
 
-<small>
-${o.items
-.map(
-x=>x.name+" × "+x.qty
-)
-.join(", ")}
-</small>
+ <label class="muted">
+ SGST %
+ </label>
 
-</div>
+ <input id="sgst"
+ class="input"
+ type="number"
+ value="${r.tax.sgst}">
 
-<span class="badge">
-${o.status}
-</span>
+ <label class="muted">
+ Service Charge %
+ </label>
 
-<button
-class="primary"
-onclick="
-updateOrder('${o.id}')
-"
->
-UPDATE
-</button>
+ <input id="service"
+ class="input"
+ type="number"
+ value="${r.tax.service}">
 
-</div>
+ <button class="primary"
+ onclick="saveTax()">
+ SAVE TAX SETTINGS
+ </button>
 
-`
-)
-.join("")
-||
-`
-<p class="muted">
-Kitchen is clear.
-</p>
-`
+ </div>
+
+ </div>
+ `;
 }
 
-</div>
-
-`;
-
-}
-
-
-/* =====================================================
-   QR MANAGER
-===================================================== */
-
-function qrPage(){
-
-const r=currentRestaurant();
-
-const table=
-r.tables.find(
-t=>t.number===selectedTable
-)
-||
-r.tables[0];
-
-
-if(!table){
-
-return `
-<div class="card">
-Create a table first.
-</div>
-`;
-
-}
-
-
-/*
-   Customer URL
-
-   Example:
-
-   index.html
-   ?customer=1
-   &restaurant=REST_xxx
-   &table=QR_xxx
-*/
-
-const url=
-location.href.split("?")[0]
-+
-"?customer=1"
-+
-"&restaurant="+
-encodeURIComponent(r.id)
-+
-"&table="+
-encodeURIComponent(table.qrToken);
-
-
-/*
-   QR rendering service.
-
-   For real production,
-   this should be replaced with
-   server-generated QR.
-*/
-
-const qrImage=
-"https://api.qrserver.com/v1/create-qr-code/?size=500x500&data="
-+
-encodeURIComponent(url);
-
-
-return `
-
-<div class="qr-layout">
-
-<div class="card qr-box">
-
-<div class="card-head">
-
-<h2>
-Table ${table.number}
-</h2>
-
-<span class="badge green">
-UNIQUE QR
-</span>
-
-</div>
-
-
-<img
-src="${qrImage}"
-alt="Table QR"
->
-
-
-<p
-class="muted"
-style="word-break:break-all"
->
-${url}
-</p>
-
-
-<button
-class="primary"
-style="margin-top:12px"
-onclick="
-openCustomer(
-'${r.id}',
-'${table.qrToken}'
-)
-"
->
-OPEN CUSTOMER MENU
-</button>
-
-</div>
-
-
-<div class="card">
-
-<h2>
-QR Flow
-</h2>
-
-<div class="flow">
-01 · Customer enters restaurant
-</div>
-
-<div class="flow">
-02 · Customer sits at Table ${table.number}
-</div>
-
-<div class="flow">
-03 · Customer scans QR
-</div>
-
-<div class="flow">
-04 · QR identifies restaurant + table
-</div>
-
-<div class="flow">
-05 · Customer sees menu
-</div>
-
-<div class="flow">
-06 · Customer places order
-</div>
-
-<div class="flow">
-07 · Kitchen receives order
-</div>
-
-<div class="flow">
-08 · Chef sets preparation time
-</div>
-
-<div class="flow">
-09 · Customer sees countdown
-</div>
-
-</div>
-
-</div>
-
-`;
-
-}
-
-
-/* =====================================================
-   CUSTOMER OPEN
-===================================================== */
-
-function openCustomer(
-restaurantId,
-token
-){
-
-const r=
-database.restaurants.find(
-x=>x.id===restaurantId
-);
-
-if(!r)
-return;
-
-
-const table=
-r.tables.find(
-x=>x.qrToken===token
-);
-
-
-if(!table)
-return;
-
-
-selectedTable=
-table.number;
-
-
-document
-.getElementById("ownerApp")
-.style.display="none";
-
-
-document
-.getElementById("authScreen")
-.style.display="none";
-
-
-document
-.getElementById("customerApp")
-.style.display="block";
-
-
-document
-.getElementById("customerRestaurant")
-.innerText=
-r.name;
-
-
-document
-.getElementById("customerTable")
-.innerText=
-"TABLE "+table.number;
-
-
-document
-.getElementById("customerTableBig")
-.innerText=
-"T"+table.number;
-
-
-renderCustomerMenu();
-
-}
-
-
-/* =====================================================
-   CUSTOMER MENU
-===================================================== */
-
-function renderCustomerMenu(){
-
-const params=
-new URLSearchParams(
-location.search
-);
-
-
-const restaurantId=
-params.get("restaurant");
-
-
-const token=
-params.get("table");
-
-
-let r=
-database.restaurants.find(
-x=>x.id===restaurantId
-);
-
-
-if(!r){
-
-r=currentRestaurant();
-
-}
-
-
-if(!r)
-return;
-
-
-const table=
-r.tables.find(
-x=>x.qrToken===token
-)
-||
-r.tables.find(
-x=>x.number===selectedTable
-);
-
-
-if(!table)
-return;
-
-
-document
-.getElementById("customerRestaurant")
-.innerText=
-r.name;
-
-
-document
-.getElementById("customerTable")
-.innerText=
-"TABLE "+table.number;
-
-
-document
-.getElementById("customerTableBig")
-.innerText=
-"T"+table.number;
-
-
-const query=
-document
-.getElementById("customerSearch")
-.value
-.toLowerCase();
-
-
-const menu=
-r.menu.filter(
-item =>
-item.available
-&&
-item.name
-.toLowerCase()
-.includes(query)
-);
-
-
-document
-.getElementById("customerFoods")
-.innerHTML=
-
-menu.map(
-item=>`
-
-<article
-class="customer-food"
->
-
-<div class="image">
-${item.icon}
-</div>
-
-<div>
-
-<small>
-${item.category}
-</small>
-
-<h3>
-${item.name}
-</h3>
-
-<b>
-${money(item.price)}
-</b>
-
-<button
-onclick="
-addCustomerCart('${item.id}')
-"
->
-ADD
-</button>
-
-</div>
-
-</article>
-
-`
-)
-.join("");
-
-
-renderCustomerCart();
-
-}
-
-
-/* =====================================================
-   CUSTOMER CART
-===================================================== */
-
-function addCustomerCart(id){
-
-const params=
-new URLSearchParams(
-location.search
-);
-
-
-const r=
-database.restaurants.find(
-x=>x.id===params.get("restaurant")
-)
-||
-currentRestaurant();
-
-
-if(!r)
-return;
-
-
-const item=
-r.menu.find(
-x=>x.id===id
-);
-
-
-if(!item)
-return;
-
-
-const existing=
-customerCart.find(
-x=>x.id===id
-);
-
-
-if(existing)
-existing.qty++;
-
-else
-customerCart.push({
-...item,
-qty:1
-});
-
-
-renderCustomerCart();
-
-}
-
-
-/* =====================================================
-   CUSTOMER CART RENDER
-===================================================== */
-
-function renderCustomerCart(){
-
-const box=
-document.getElementById(
-"customerCart"
-);
-
-const count=
-document.getElementById(
-"customerItemCount"
-);
-
-
-if(!box)
-return;
-
-
-const totalItems=
-customerCart.reduce(
-(a,x)=>a+x.qty,
-0
-);
-
-
-count.innerText=
-totalItems+" ITEMS";
-
-
-if(!customerCart.length){
-
-box.innerHTML=
-"Your cart is empty.";
-
-return;
-
-}
-
-
-const params=
-new URLSearchParams(
-location.search
-);
-
-
-const r=
-database.restaurants.find(
-x=>x.id===params.get("restaurant")
-)
-||
-currentRestaurant();
-
-
-const subtotal=
-customerCart.reduce(
-(a,x)=>
-a+
-Number(x.price)*x.qty,
-0
-);
-
-
-const rate=
-Number(r.tax.cgst)+
-Number(r.tax.sgst)+
-Number(r.tax.service);
-
-
-const tax=
-subtotal*rate/100;
-
-
-const total=
-subtotal+tax;
-
-
-box.innerHTML=
-
-customerCart
-.map(
-(item,index)=>`
-
-<div class="cart-row">
-
-<span>
-${item.icon}
-</span>
-
-<div>
-
-<b>
-${item.name}
-</b>
-
-<small>
-${money(item.price)}
-</small>
-
-</div>
-
-<div class="qty">
-
-<button
-onclick="
-customerCart[${index}].qty--;
-if(customerCart[${index}].qty<=0)
-customerCart.splice(${index},1);
-renderCustomerCart();
-"
->
-−
-</button>
-
-${item.qty}
-
-<button
-onclick="
-customerCart[${index}].qty++;
-renderCustomerCart();
-"
->
-+
-</button>
-
-</div>
-
-</div>
-
-`
-)
-.join("")
-
-+
-
-`
-
-<div style="margin-top:15px">
-
-<div class="bill">
-<span>Subtotal</span>
-<b>${money(subtotal)}</b>
-</div>
-
-<div class="bill">
-<span>Tax & Charges</span>
-<b>${money(tax)}</b>
-</div>
-
-<div class="bill total">
-<span>Total</span>
-<b>${money(total)}</b>
-</div>
-
-<button
-class="primary full"
-onclick="
-placeCustomerOrder()
-"
->
-PLACE ORDER →
-</button>
-
-</div>
-
-`;
-
-}
-
-
-/* =====================================================
-   CUSTOMER PLACE ORDER
-===================================================== */
-
-function placeCustomerOrder(){
-
-if(!customerCart.length){
-
-alert(
-"Your cart is empty."
-);
-
-return;
-
-}
-
-
-const params=
-new URLSearchParams(
-location.search
-);
-
-
-const r=
-database.restaurants.find(
-x=>x.id===params.get("restaurant")
-)
-||
-currentRestaurant();
-
-
-if(!r)
-return;
-
-
-const table=
-r.tables.find(
-x=>x.qrToken===params.get("table")
-)
-||
-r.tables.find(
-x=>x.number===selectedTable
-);
-
-
-if(!table){
-
-alert(
-"Invalid table."
-);
-
-return;
-
-}
-
-
-const subtotal=
-customerCart.reduce(
-(a,x)=>
-a+
-Number(x.price)*x.qty,
-0
-);
-
-
-const rate=
-Number(r.tax.cgst)+
-Number(r.tax.sgst)+
-Number(r.tax.service);
-
-
-const tax=
-subtotal*rate/100;
-
-
-const order={
-
-id:
-"ORDER_"+Date.now(),
-
-table:
-table.number,
-
-items:
-customerCart.map(
-x=>({
-
-name:x.name,
-
-price:x.price,
-
-qty:x.qty
-
-})
-),
-
-subtotal:subtotal,
-
-tax:tax,
-
-total:
-subtotal+tax,
-
-status:"NEW",
-
-etaSeconds:0,
-
-etaStarted:null,
-
-createdAt:
-Date.now(),
-
-source:"CUSTOMER_QR"
-
-};
-
-
-r.orders.push(order);
-
-customerCart=[];
-
-save();
-
-renderCustomerCart();
-
-
-document
-.getElementById("customerStatus")
-.innerHTML=`
-
-<div class="customer-status">
-
-<b>
-✓ ORDER CONFIRMED
-</b>
-
-<p
-style="font-size:9px;margin-top:8px"
->
-Table ${table.number}
-·
-Order sent to kitchen.
-</p>
-
-<div style="margin-top:12px">
-Chef ETA
-</div>
-
-<span
-class="eta"
-id="customerETA"
->
-WAITING...
-</span>
-
-<p
-id="customerOrderStatus"
-style="font-size:9px;margin-top:8px"
->
-Waiting for kitchen confirmation...
-</p>
-
-</div>
-
-`;
-
-
-trackCustomerOrder(
-r.id,
-order.id
-);
-
-}
-
-
-/* =====================================================
-   CUSTOMER TRACKING
-===================================================== */
-
-function trackCustomerOrder(
-restaurantId,
-orderId
-){
-
-setInterval(
-()=>{
-
-const r=
-database.restaurants.find(
-x=>x.id===restaurantId
-);
-
-
-if(!r)
-return;
-
-
-const order=
-r.orders.find(
-x=>x.id===orderId
-);
-
-
-if(!order)
-return;
-
-
-const eta=
-document.getElementById(
-"customerETA"
-);
-
-const status=
-document.getElementById(
-"customerOrderStatus"
-);
-
-
-if(status){
-
-status.innerText=
-"Status: "+
-order.status;
-
-}
-
-
-if(
-order.etaStarted
-&&
-order.etaSeconds>0
-){
-
-const elapsed=
-Math.floor(
-(Date.now()-order.etaStarted)/1000
-);
-
-
-const remaining=
-Math.max(
-0,
-order.etaSeconds-elapsed
-);
-
-
-if(eta){
-
-const mins=
-Math.floor(
-remaining/60
-);
-
-const secs=
-remaining%60;
-
-
-eta.innerText=
-String(mins)
-.padStart(2,"0")
-+
-":"
-+
-String(secs)
-.padStart(2,"0");
-
-}
-
-}else{
-
-if(eta){
-
-eta.innerText=
-order.status==="READY"
-?
-"READY"
-:
-"WAITING";
-
-}
-
-}
-
-},
-1000
-);
-
-}
-
-
-/* =====================================================
-   SETTINGS
-===================================================== */
-
-function settingsPage(){
-
-const r=currentRestaurant();
-
-return `
-
-<div class="grid two">
-
-<div class="card">
-
-<h2>
-Restaurant Profile
-</h2>
-
-<p
-class="muted"
-style="margin-top:8px"
->
-Your restaurant account.
-</p>
-
-
-<div class="flow">
-Restaurant:
-<b>${r.name}</b>
-</div>
-
-
-<div class="flow">
-Owner:
-<b>${r.owner}</b>
-</div>
-
-
-<div class="flow">
-Email:
-<b>${r.email}</b>
-</div>
-
-
-</div>
-
-
-<div class="card">
-
-<h2>
-Tax Settings
-</h2>
-
-<p
-class="muted"
-style="margin:8px 0 15px"
->
-These values are used on customer bills.
-</p>
-
-
-<label class="muted">
-CGST %
-
-<input
-id="taxCGST"
-class="input"
-type="number"
-step="0.01"
-value="${r.tax.cgst}"
->
-</label>
-
-
-<label class="muted">
-SGST %
-
-<input
-id="taxSGST"
-class="input"
-type="number"
-step="0.01"
-value="${r.tax.sgst}"
->
-</label>
-
-
-<label class="muted">
-Service Charge %
-
-<input
-id="taxService"
-class="input"
-type="number"
-step="0.01"
-value="${r.tax.service}"
->
-</label>
-
-
-<button
-class="primary"
-onclick="saveTax()"
->
-SAVE TAX SETTINGS
-</button>
-
-</div>
-
-</div>
-
-`;
-
-}
-
-
-/* =====================================================
-   SAVE TAX
-===================================================== */
 
 function saveTax(){
 
-const r=currentRestaurant();
+ let r=rest();
 
-r.tax.cgst=
-Number(
-document.getElementById(
-"taxCGST"
-).value
-);
+ r.tax.cgst=Number(cgst.value);
+ r.tax.sgst=Number(sgst.value);
+ r.tax.service=Number(service.value);
 
-r.tax.sgst=
-Number(
-document.getElementById(
-"taxSGST"
-).value
-);
+ save();
 
-r.tax.service=
-Number(
-document.getElementById(
-"taxService"
-).value
-);
-
-
-save();
-
-alert(
-"✓ Tax settings saved."
-);
-
+ alert("✓ Tax settings saved.");
+ page("settings");
 }
 
 
 /* =====================================================
-   MONEY
+CUSTOMER MODE
 ===================================================== */
 
-function money(value){
+function openCustomer(rid,token){
 
-return "₹"+
-Number(value)
-.toLocaleString(
-"en-IN",
-{
-maximumFractionDigits:2
+ location.href=
+ location.href.split("?")[0]+
+ "?customer=1"+
+ "&restaurant="+encodeURIComponent(rid)+
+ "&table="+encodeURIComponent(token);
+
 }
-);
 
+
+function customerMode(){
+
+ let p=new URLSearchParams(location.search);
+
+ if(p.get("customer")!=="1")return;
+
+ let r=db.restaurants.find(
+  x=>x.id===p.get("restaurant")
+ );
+
+ if(!r){
+  document.body.innerHTML=
+  "<h2 style='padding:40px'>Invalid restaurant QR.</h2>";
+  return;
+ }
+
+ let t=r.tables.find(
+  x=>x.token===p.get("table")
+ );
+
+ if(!t){
+  document.body.innerHTML=
+  "<h2 style='padding:40px'>Invalid table QR.</h2>";
+  return;
+ }
+
+ selectedTable=t.number;
+
+ auth.classList.add("hidden");
+ owner.classList.add("hidden");
+ customer.classList.remove("hidden");
+
+ crest.innerText=r.name;
+ ctable.innerText="TABLE "+t.number;
+ ctablebig.innerText="T"+t.number;
+
+ customerMenu();
 }
 
 
 /* =====================================================
-   CUSTOMER URL MODE
+CUSTOMER MENU
 ===================================================== */
 
-function checkCustomerMode(){
+function customerMenu(){
 
-const params=
-new URLSearchParams(
-location.search
-);
+ let p=new URLSearchParams(location.search);
 
+ let r=db.restaurants.find(
+  x=>x.id===p.get("restaurant")
+ );
+
+ if(!r)return;
+
+ let q=csearch.value.toLowerCase();
+
+ let items=r.menu.filter(
+  x=>x.available &&
+  x.name.toLowerCase().includes(q)
+ );
+
+ foods.innerHTML=items.map(x=>`
+
+ <article class="cfood">
+
+ <div class="fi">${x.icon}</div>
+
+ <div>
+
+ <small>${x.category}</small>
+
+ <h3>${x.name}</h3>
+
+ <b>${money(x.price)}</b>
+
+ <button onclick="addCustomer('${x.id}')">
+ ADD
+ </button>
+
+ </div>
+
+ </article>
+
+ `).join("");
+
+ renderCustomerCart();
+}
+
+
+function addCustomer(id){
+
+ let p=new URLSearchParams(location.search);
+
+ let r=db.restaurants.find(
+  x=>x.id===p.get("restaurant")
+ );
+
+ let item=r.menu.find(x=>x.id===id);
+
+ let old=customerCart.find(x=>x.id===id);
+
+ if(old)old.qty++;
+ else customerCart.push({...item,qty:1});
+
+ renderCustomerCart();
+}
+
+
+function renderCustomerCart(){
+
+ let p=new URLSearchParams(location.search);
+
+ let r=db.restaurants.find(
+  x=>x.id===p.get("restaurant")
+ );
+
+ if(!r)return;
+
+ let countItems=customerCart.reduce(
+  (a,x)=>a+x.qty,0
+ );
+
+ count.innerText=countItems+" ITEMS";
+
+ if(!customerCart.length){
+  cart.innerHTML="Your cart is empty.";
+  return;
+ }
+
+ let subtotal=customerCart.reduce(
+  (a,x)=>a+x.price*x.qty,0
+ );
+
+ let tax=subtotal*
+ (r.tax.cgst+r.tax.sgst+r.tax.service)/100;
+
+ let total=subtotal+tax;
+
+ cart.innerHTML=
+
+ customerCart.map((x,i)=>`
+
+ <div class="cartrow">
+
+ <span>${x.icon}</span>
+
+ <div>
+ <b>${x.name}</b>
+ <small>${money(x.price)}</small>
+ </div>
+
+ <div class="qty">
+
+ <button onclick="
+ customerCart[${i}].qty--;
+ if(customerCart[${i}].qty<=0)
+ customerCart.splice(${i},1);
+ renderCustomerCart()
+ ">−</button>
+
+ ${x.qty}
+
+ <button onclick="
+ customerCart[${i}].qty++;
+ renderCustomerCart()
+ ">+</button>
+
+ </div>
+
+ </div>
+
+ `).join("")+
+
+ `
+
+ <div style="margin-top:14px">
+
+ <div class="bill">
+ <span>Subtotal</span>
+ <b>${money(subtotal)}</b>
+ </div>
+
+ <div class="bill">
+ <span>Tax & Charges</span>
+ <b>${money(tax)}</b>
+ </div>
+
+ <div class="bill total">
+ <span>Total</span>
+ <b>${money(total)}</b>
+ </div>
+
+ <button class="primary full"
+ onclick="customerOrder()">
+ PLACE ORDER →
+ </button>
+
+ </div>
+ `;
+}
+
+
+/* =====================================================
+CUSTOMER ORDER + RANGE
+===================================================== */
+
+async function customerOrder(){
+
+ let p=new URLSearchParams(location.search);
+
+ let r=db.restaurants.find(
+  x=>x.id===p.get("restaurant")
+ );
+
+ if(!r)return;
+
+ /*
+ Check location only if owner
+ configured a location.
+ */
+
+ if(r.range.enabled&&r.range.lat!==null){
+
+  if(!navigator.geolocation){
+
+   alert("Location is required to place this order.");
+   return;
+  }
+
+  let allowed=
+  await checkRange(r);
+
+  if(!allowed){
+
+   alert(
+    "⚠️ You are outside this restaurant's ordering area.\n\n"+
+    "Please move closer to place your order."
+   );
+
+   return;
+  }
+ }
+
+
+ if(!customerCart.length){
+  alert("Your cart is empty.");
+  return;
+ }
+
+
+ let table=r.tables.find(
+  x=>x.token===p.get("table")
+ );
+
+ if(!table)return;
+
+ let subtotal=customerCart.reduce(
+  (a,x)=>a+x.price*x.qty,0
+ );
+
+ let tax=subtotal*
+ (r.tax.cgst+r.tax.sgst+r.tax.service)/100;
+
+ let o={
+
+  id:"ORD_"+Date.now(),
+
+  table:table.number,
+
+  items:customerCart.map(x=>({
+   name:x.name,
+   price:x.price,
+   qty:x.qty
+  })),
+
+  subtotal,
+  tax,
+  total:subtotal+tax,
+
+  status:"NEW",
+
+  eta:0,
+  etaStart:null,
+
+  created:Date.now(),
+
+  source:"CUSTOMER_QR"
+ };
+
+ r.orders.push(o);
+
+ customerCart=[];
+
+ save();
+
+ renderCustomerCart();
+
+ customerStatus.innerHTML=`
+
+ <div class="status">
+
+ <b>✓ ORDER SENT TO KITCHEN</b>
+
+ <p class="muted">
+ Table ${table.number}
+ </p>
+
+ <div style="margin-top:10px">
+ Chef ETA
+ </div>
+
+ <span class="eta" id="eta">
+ WAITING
+ </span>
+
+ <p class="muted" id="cstatus">
+ Waiting for kitchen confirmation...
+ </p>
+
+ </div>
+
+ `;
+
+ track(o.id,r.id);
+}
+
+
+/* =====================================================
+CUSTOMER ETA
+===================================================== */
+
+function track(orderId,rid){
+
+ setInterval(()=>{
+
+  let r=db.restaurants.find(
+   x=>x.id===rid
+  );
+
+  if(!r)return;
+
+  let o=r.orders.find(
+   x=>x.id===orderId
+  );
+
+  if(!o)return;
+
+  let e=document.getElementById("eta");
+  let s=document.getElementById("cstatus");
+
+  if(s)
+  s.innerText="Status: "+o.status;
+
+  if(!e)return;
+
+  if(o.etaStart&&o.eta){
+
+   let elapsed=
+   Math.floor(
+    (Date.now()-o.etaStart)/1000
+   );
+
+   let remaining=
+   Math.max(0,o.eta-elapsed);
+
+   let min=Math.floor(remaining/60);
+   let sec=remaining%60;
+
+   e.innerText=
+   String(min).padStart(2,"0")+
+   ":"+
+   String(sec).padStart(2,"0");
+
+  }else{
+
+   e.innerText=
+   o.status==="READY"
+   ?"READY"
+   :"WAITING";
+
+  }
+
+ },1000);
+}
+
+
+/* =====================================================
+START
+===================================================== */
+
+customerMode();
 
 if(
-params.get("customer")!=="1"
-)
-return;
-
-
-const restaurant=
-database.restaurants.find(
-r =>
-r.id===params.get("restaurant")
-);
-
-
-if(!restaurant){
-
-document.body.innerHTML=
-`
-<div style="
-padding:40px;
-font-family:Arial;
-text-align:center
-">
-<h2>
-Invalid restaurant QR
-</h2>
-</div>
-`;
-
-return;
-
+!location.search.includes("customer=1") &&
+db.current
+){
+ startOwner();
 }
-
-
-const table=
-restaurant.tables.find(
-t =>
-t.qrToken===params.get("table")
-);
-
-
-if(!table){
-
-document.body.innerHTML=
-`
-<div style="
-padding:40px;
-font-family:Arial;
-text-align:center
-">
-<h2>
-Invalid table QR
-</h2>
-</div>
-`;
-
-return;
-
-}
-
-
-document
-.getElementById("authScreen")
-.style.display="none";
-
-
-document
-.getElementById("ownerApp")
-.style.display="none";
-
-
-document
-.getElementById("customerApp")
-.style.display="block";
-
-
-selectedTable=
-table.number;
-
-
-document
-.getElementById("customerRestaurant")
-.innerText=
-restaurant.name;
-
-
-document
-.getElementById("customerTable")
-.innerText=
-"TABLE "+table.number;
-
-
-document
-.getElementById("customerTableBig")
-.innerText=
-"T"+table.number;
-
-
-renderCustomerMenu();
-
-}
-
-
-/* =====================================================
-   AUTO START
-===================================================== */
-
-if(database.currentRestaurant){
-
-startOwner();
-
-}
-
-checkCustomerMode();
 
 </script>
 
