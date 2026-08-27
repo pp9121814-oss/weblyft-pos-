@@ -1,0 +1,4179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>WEBLYFT Restaurant OS</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Inter,Arial,sans-serif;
+}
+
+body{
+    background:#f4f7fb;
+    color:#10213d;
+}
+
+button,
+input,
+select{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+.hidden{
+    display:none!important;
+}
+
+/* =====================================================
+   GLOBAL
+===================================================== */
+
+.primary{
+    border:0;
+    background:linear-gradient(135deg,#0758ef,#08a9df);
+    color:#fff;
+    padding:11px 15px;
+    border-radius:9px;
+    font-size:10px;
+    font-weight:800;
+    transition:.2s;
+}
+
+.primary:hover{
+    transform:translateY(-1px);
+    box-shadow:0 8px 20px rgba(7,88,239,.2);
+}
+
+.secondary{
+    border:1px solid #dce5ef;
+    background:#f8fafc;
+    color:#52667e;
+    padding:10px 13px;
+    border-radius:9px;
+    font-size:9px;
+}
+
+.full{
+    width:100%;
+}
+
+.input{
+    width:100%;
+    padding:13px;
+    border:1px solid #dce5ef;
+    border-radius:9px;
+    outline:none;
+    background:#fff;
+    margin-bottom:10px;
+    font-size:11px;
+}
+
+.input:focus{
+    border-color:#0758ef;
+    box-shadow:0 0 0 3px rgba(7,88,239,.08);
+}
+
+.muted{
+    color:#8192a7;
+    font-size:9px;
+}
+
+.badge{
+    display:inline-block;
+    padding:5px 8px;
+    border-radius:7px;
+    background:#fff0df;
+    color:#e77919;
+    font-size:8px;
+    font-weight:700;
+}
+
+.badge.green{
+    background:#e5f8ef;
+    color:#0b9865;
+}
+
+.badge.blue{
+    background:#e8f1ff;
+    color:#075de4;
+}
+
+.card{
+    background:#fff;
+    border:1px solid #e0e8f1;
+    border-radius:16px;
+    padding:18px;
+    box-shadow:0 6px 25px rgba(16,33,61,.04);
+}
+
+/* =====================================================
+   LOGIN / REGISTER
+===================================================== */
+
+.auth-screen{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    background:
+        radial-gradient(circle at 10% 10%,#dceaff,transparent 32%),
+        radial-gradient(circle at 90% 90%,#d7ffff,transparent 30%),
+        #f5f8fc;
+}
+
+.auth-box{
+    width:410px;
+    max-width:100%;
+    background:#fff;
+    border:1px solid #e0e8f1;
+    border-radius:24px;
+    padding:30px;
+    box-shadow:0 30px 90px rgba(16,33,61,.12);
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:11px;
+}
+
+.logo{
+    width:48px;
+    height:48px;
+    display:grid;
+    place-items:center;
+    border-radius:14px;
+    color:#fff;
+    font-size:20px;
+    font-weight:900;
+    background:linear-gradient(135deg,#0758ef,#12d9cf);
+}
+
+.brand-name{
+    font-size:19px;
+    font-weight:900;
+}
+
+.brand-name small{
+    display:block;
+    color:#8798ac;
+    font-size:8px;
+    letter-spacing:1.4px;
+    margin-top:3px;
+}
+
+.auth-box h1{
+    margin-top:28px;
+    font-size:25px;
+}
+
+.auth-box .sub{
+    color:#8394a8;
+    font-size:10px;
+    line-height:1.6;
+    margin:7px 0 20px;
+}
+
+.auth-link{
+    text-align:center;
+    margin-top:15px;
+    font-size:9px;
+    color:#7e90a5;
+}
+
+.auth-link button{
+    border:0;
+    background:none;
+    color:#075de4;
+    font-weight:700;
+}
+
+/* =====================================================
+   OWNER APP
+===================================================== */
+
+#ownerApp{
+    display:none;
+}
+
+.sidebar{
+    position:fixed;
+    inset:0 auto 0 0;
+    width:235px;
+    padding:22px 15px;
+    background:#071529;
+    color:#fff;
+    z-index:50;
+}
+
+.sidebar .brand-name{
+    color:#fff;
+}
+
+.workspace{
+    margin:30px 0 15px;
+    padding:13px;
+    background:#0d2039;
+    border:1px solid #1d3756;
+    border-radius:11px;
+}
+
+.workspace small{
+    color:#7189a5;
+    font-size:8px;
+}
+
+.workspace b{
+    display:block;
+    margin:7px 0;
+    font-size:11px;
+}
+
+.workspace span{
+    color:#7890ad;
+    font-size:8px;
+}
+
+.nav{
+    display:grid;
+    gap:4px;
+}
+
+.nav button{
+    border:0;
+    background:transparent;
+    color:#9db0c8;
+    text-align:left;
+    padding:11px;
+    border-radius:8px;
+    font-size:10px;
+}
+
+.nav button:hover,
+.nav button.active{
+    background:#0b5de8;
+    color:#fff;
+}
+
+.main{
+    margin-left:235px;
+    padding:28px;
+    max-width:1500px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:23px;
+}
+
+.topbar small{
+    color:#8394a8;
+    font-size:8px;
+    letter-spacing:1.5px;
+}
+
+.topbar h1{
+    margin-top:5px;
+    font-size:25px;
+}
+
+.avatar{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:#e8f1ff;
+    color:#075de4;
+    font-size:10px;
+    font-weight:800;
+}
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+.grid{
+    display:grid;
+    gap:16px;
+}
+
+.stats{
+    grid-template-columns:repeat(4,1fr);
+}
+
+.two{
+    grid-template-columns:1.2fr 1fr;
+}
+
+.stat span{
+    color:#8394a8;
+    font-size:10px;
+}
+
+.stat strong{
+    display:block;
+    margin:10px 0;
+    font-size:24px;
+}
+
+.green-text{
+    color:#0fa16b;
+    font-size:9px;
+}
+
+.card-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+.card-head h2,
+.card h2{
+    font-size:14px;
+}
+
+.chart{
+    height:210px;
+    display:flex;
+    align-items:end;
+    gap:15px;
+}
+
+.bar-wrap{
+    flex:1;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:end;
+    align-items:center;
+}
+
+.bar{
+    width:28px;
+    border-radius:7px 7px 2px 2px;
+    background:linear-gradient(#0bcbd0,#0758ef);
+}
+
+.bar-wrap small{
+    color:#8999ad;
+    font-size:8px;
+    margin-top:7px;
+}
+
+/* =====================================================
+   ORDER ROW
+===================================================== */
+
+.order-row{
+    display:grid;
+    grid-template-columns:42px 1fr auto auto;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid #edf1f5;
+}
+
+.order-row:last-child{
+    border-bottom:0;
+}
+
+.table-icon{
+    width:38px;
+    height:38px;
+    border-radius:9px;
+    display:grid;
+    place-items:center;
+    background:#edf4ff;
+    color:#075de4;
+    font-size:9px;
+    font-weight:800;
+}
+
+.order-row b{
+    font-size:10px;
+}
+
+.order-row small{
+    display:block;
+    color:#8394a8;
+    font-size:8px;
+    margin-top:3px;
+}
+
+/* =====================================================
+   TABLES
+===================================================== */
+
+.table-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+}
+
+.table-card{
+    background:#fff;
+    border:1px solid #dfe7ef;
+    border-radius:12px;
+    padding:15px;
+    min-height:110px;
+    transition:.2s;
+}
+
+.table-card:hover{
+    border-color:#075de4;
+    transform:translateY(-2px);
+}
+
+.table-card b{
+    font-size:12px;
+}
+
+.table-card span{
+    display:block;
+    color:#0fa16b;
+    font-size:8px;
+    margin-top:8px;
+}
+
+.table-card.busy span{
+    color:#e77818;
+}
+
+.table-card small{
+    display:block;
+    margin-top:14px;
+}
+
+/* =====================================================
+   MENU
+===================================================== */
+
+.menu-row{
+    display:grid;
+    grid-template-columns:45px 1fr auto auto;
+    gap:11px;
+    align-items:center;
+    padding:11px 0;
+    border-bottom:1px solid #edf1f5;
+}
+
+.food-icon{
+    width:40px;
+    height:40px;
+    border-radius:10px;
+    background:#f0f5fa;
+    display:grid;
+    place-items:center;
+    font-size:22px;
+}
+
+.menu-row b{
+    font-size:10px;
+}
+
+.menu-row small{
+    display:block;
+    color:#8394a8;
+    font-size:8px;
+    margin-top:3px;
+}
+
+.search{
+    width:100%;
+    padding:12px;
+    border:1px solid #dfe7ef;
+    border-radius:9px;
+    outline:none;
+    font-size:10px;
+    margin-bottom:12px;
+}
+
+.outline{
+    border:1px solid #075de4;
+    color:#075de4;
+    background:#fff;
+    border-radius:7px;
+    padding:7px 10px;
+    font-size:8px;
+    font-weight:700;
+}
+
+/* =====================================================
+   POS
+===================================================== */
+
+.pos-grid{
+    grid-template-columns:1.2fr .8fr;
+}
+
+.cart-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid #edf1f5;
+    font-size:10px;
+}
+
+.cart-row div:nth-child(2){
+    flex:1;
+}
+
+.qty{
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+
+.qty button{
+    width:22px;
+    height:22px;
+    border:0;
+    border-radius:5px;
+    background:#edf4ff;
+    color:#075de4;
+}
+
+.bill{
+    display:flex;
+    justify-content:space-between;
+    padding:6px 0;
+    font-size:10px;
+}
+
+.total{
+    font-size:15px;
+    font-weight:800;
+}
+
+/* =====================================================
+   QR
+===================================================== */
+
+.qr-layout{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+}
+
+.qr-box{
+    text-align:center;
+}
+
+.qr-box img{
+    width:270px;
+    max-width:90%;
+    display:block;
+    margin:20px auto;
+    border-radius:10px;
+}
+
+.flow{
+    padding:13px;
+    margin:8px 0;
+    border-radius:9px;
+    background:#f7f9fc;
+    font-size:10px;
+}
+
+/* =====================================================
+   CUSTOMER
+===================================================== */
+
+#customerApp{
+    display:none;
+    min-height:100vh;
+    background:#f6f9fc;
+}
+
+.customer-header{
+    background:#071529;
+    color:#fff;
+    padding:15px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.customer-header b{
+    font-size:17px;
+}
+
+.customer-header small{
+    display:block;
+    color:#91a8c1;
+    font-size:7px;
+    margin-top:3px;
+}
+
+.customer-wrap{
+    width:100%;
+    max-width:920px;
+    margin:auto;
+    padding:18px;
+}
+
+.customer-hero{
+    background:linear-gradient(135deg,#071529,#0a3b78);
+    color:#fff;
+    border-radius:18px;
+    padding:25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.customer-hero h1{
+    font-size:25px;
+    margin:6px 0;
+}
+
+.customer-hero p{
+    color:#aec1d9;
+    font-size:10px;
+}
+
+.table-number{
+    width:60px;
+    height:60px;
+    border-radius:15px;
+    background:#fff;
+    color:#075de4;
+    display:grid;
+    place-items:center;
+    font-weight:900;
+}
+
+.customer-menu{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+.customer-food{
+    background:#fff;
+    border:1px solid #e0e8f1;
+    border-radius:13px;
+    padding:10px;
+    display:grid;
+    grid-template-columns:70px 1fr;
+    gap:10px;
+}
+
+.customer-food .image{
+    background:#f0f5fa;
+    border-radius:10px;
+    display:grid;
+    place-items:center;
+    font-size:34px;
+}
+
+.customer-food h3{
+    font-size:10px;
+    margin:5px 0;
+}
+
+.customer-food small{
+    color:#8293a8;
+    font-size:7px;
+}
+
+.customer-food button{
+    float:right;
+    border:0;
+    background:#eaf2ff;
+    color:#075de4;
+    padding:6px 9px;
+    border-radius:6px;
+    font-size:8px;
+    font-weight:800;
+}
+
+.customer-card{
+    background:#fff;
+    border:1px solid #e0e8f1;
+    border-radius:14px;
+    padding:17px;
+    margin-top:15px;
+}
+
+.customer-status{
+    background:#eaf2ff;
+    border-radius:12px;
+    padding:18px;
+    margin-top:15px;
+    text-align:center;
+}
+
+.eta{
+    display:block;
+    margin-top:7px;
+    color:#075de4;
+    font-size:30px;
+    font-weight:900;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media(max-width:900px){
+
+    .sidebar{
+        width:65px;
+    }
+
+    .sidebar .brand-name,
+    .workspace,
+    .nav span{
+        display:none;
+    }
+
+    .main{
+        margin-left:65px;
+    }
+
+    .stats{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .two,
+    .pos-grid,
+    .qr-layout{
+        grid-template-columns:1fr;
+    }
+
+    .table-grid{
+        grid-template-columns:repeat(3,1fr);
+    }
+}
+
+@media(max-width:600px){
+
+    .sidebar{
+        top:auto;
+        bottom:0;
+        width:100%;
+        height:58px;
+        padding:4px;
+    }
+
+    .nav{
+        display:flex;
+        justify-content:space-around;
+    }
+
+    .nav button{
+        padding:8px;
+    }
+
+    .main{
+        margin:0;
+        padding:14px 12px 75px;
+    }
+
+    .table-grid{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .customer-menu{
+        grid-template-columns:1fr;
+    }
+
+    .customer-wrap{
+        padding:12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+
+<!-- =====================================================
+     AUTH
+===================================================== -->
+
+<section
+id="authScreen"
+class="auth-screen"
+>
+
+<div class="auth-box">
+
+<div class="brand">
+
+<div class="logo">
+W↗
+</div>
+
+<div class="brand-name">
+WEBLYFT
+<small>RESTAURANT OS</small>
+</div>
+
+</div>
+
+
+<!-- LOGIN -->
+
+<div id="loginForm">
+
+<h1>
+Owner Login
+</h1>
+
+<p class="sub">
+Manage your restaurant, menu, tables,
+orders and kitchen from one system.
+</p>
+
+<input
+id="loginEmail"
+class="input"
+type="email"
+placeholder="Owner email"
+>
+
+<input
+id="loginPassword"
+class="input"
+type="password"
+placeholder="Password"
+>
+
+<button
+class="primary full"
+onclick="login()"
+>
+LOGIN
+</button>
+
+<div class="auth-link">
+Don't have an account?
+<button onclick="showRegister()">
+Create restaurant
+</button>
+</div>
+
+<p
+id="loginMessage"
+class="muted"
+style="margin-top:12px"
+></p>
+
+</div>
+
+
+<!-- REGISTER -->
+
+<div
+id="registerForm"
+class="hidden"
+>
+
+<h1>
+Create Restaurant
+</h1>
+
+<p class="sub">
+Create your WEBLYFT restaurant workspace.
+</p>
+
+<input
+id="registerRestaurant"
+class="input"
+placeholder="Restaurant name"
+>
+
+<input
+id="registerOwner"
+class="input"
+placeholder="Owner name"
+>
+
+<input
+id="registerEmail"
+class="input"
+type="email"
+placeholder="Owner email"
+>
+
+<input
+id="registerPassword"
+class="input"
+type="password"
+placeholder="Password — minimum 8 characters"
+>
+
+<input
+id="registerConfirm"
+class="input"
+type="password"
+placeholder="Confirm password"
+>
+
+<button
+class="primary full"
+onclick="registerRestaurant()"
+>
+CREATE ACCOUNT
+</button>
+
+<div class="auth-link">
+Already have an account?
+<button onclick="showLogin()">
+Back to login
+</button>
+</div>
+
+<p
+id="registerMessage"
+class="muted"
+style="margin-top:12px"
+></p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     OWNER APPLICATION
+===================================================== -->
+
+<section id="ownerApp">
+
+<aside class="sidebar">
+
+<div class="brand">
+
+<div class="logo">
+W↗
+</div>
+
+<div class="brand-name">
+WEBLYFT
+<small>RESTAURANT OS</small>
+</div>
+
+</div>
+
+
+<div class="workspace">
+
+<small>
+WORKSPACE
+</small>
+
+<b id="restaurantName">
+Restaurant
+</b>
+
+<span id="ownerName">
+Owner
+</span>
+
+</div>
+
+
+<div class="nav">
+
+<button
+class="active"
+data-page="dashboard"
+onclick="openPage('dashboard',this)"
+>
+▦ <span>Dashboard</span>
+</button>
+
+<button
+data-page="orders"
+onclick="openPage('orders',this)"
+>
+☷ <span>Orders</span>
+</button>
+
+<button
+data-page="tables"
+onclick="openPage('tables',this)"
+>
+▣ <span>Tables</span>
+</button>
+
+<button
+data-page="menu"
+onclick="openPage('menu',this)"
+>
+◫ <span>Menu</span>
+</button>
+
+<button
+data-page="pos"
+onclick="openPage('pos',this)"
+>
+＋ <span>New Order</span>
+</button>
+
+<button
+data-page="kitchen"
+onclick="openPage('kitchen',this)"
+>
+⌁ <span>Kitchen</span>
+</button>
+
+<button
+data-page="qr"
+onclick="openPage('qr',this)"
+>
+⌗ <span>QR Manager</span>
+</button>
+
+<button
+data-page="settings"
+onclick="openPage('settings',this)"
+>
+⚙ <span>Settings</span>
+</button>
+
+<button onclick="logout()">
+↪ <span>Logout</span>
+</button>
+
+</div>
+
+</aside>
+
+
+<main class="main">
+
+<div class="topbar">
+
+<div>
+
+<small>
+RESTAURANT MANAGEMENT
+</small>
+
+<h1 id="pageTitle">
+Dashboard
+</h1>
+
+</div>
+
+<div
+class="avatar"
+id="avatar"
+>
+OW
+</div>
+
+</div>
+
+
+<div id="pageContent"></div>
+
+</main>
+
+</section>
+
+
+<!-- =====================================================
+     CUSTOMER WEBSITE
+===================================================== -->
+
+<section id="customerApp">
+
+<header class="customer-header">
+
+<div>
+
+<b>
+WEBLYFT
+</b>
+
+<small>
+RESTAURANT DIGITAL MENU
+</small>
+
+</div>
+
+<b id="customerTable">
+TABLE
+</b>
+
+</header>
+
+
+<main class="customer-wrap">
+
+<section class="customer-hero">
+
+<div>
+
+<small>
+WELCOME
+</small>
+
+<h1 id="customerRestaurant">
+Restaurant
+</h1>
+
+<p>
+Order directly from your table.
+</p>
+
+</div>
+
+<div
+id="customerTableBig"
+class="table-number"
+>
+T1
+</div>
+
+</section>
+
+
+<input
+id="customerSearch"
+class="search"
+placeholder="⌕ Search menu..."
+oninput="renderCustomerMenu()"
+>
+
+
+<div
+id="customerFoods"
+class="customer-menu"
+></div>
+
+
+<div class="customer-card">
+
+<div class="card-head">
+
+<h2>
+Your Cart
+</h2>
+
+<span
+id="customerItemCount"
+class="badge blue"
+>
+0 ITEMS
+</span>
+
+</div>
+
+<div id="customerCart">
+Your cart is empty.
+</div>
+
+</div>
+
+
+<div id="customerStatus"></div>
+
+</main>
+
+</section>
+
+
+<script>
+
+/* =====================================================
+   LOCAL DATABASE
+===================================================== */
+
+const DB_KEY =
+"WEBLYFT_PRODUCTION_SINGLE_HTML_V1";
+
+
+let database =
+JSON.parse(
+localStorage.getItem(DB_KEY)
+)
+||
+{
+    restaurants:[],
+    currentRestaurant:null
+};
+
+
+let ownerCart=[];
+
+let customerCart=[];
+
+let selectedTable=1;
+
+
+/* =====================================================
+   DATABASE SAVE
+===================================================== */
+
+function save(){
+
+localStorage.setItem(
+DB_KEY,
+JSON.stringify(database)
+);
+
+}
+
+
+/* =====================================================
+   CURRENT RESTAURANT
+===================================================== */
+
+function currentRestaurant(){
+
+return database.restaurants.find(
+r =>
+r.id === database.currentRestaurant
+);
+
+}
+
+
+/* =====================================================
+   AUTH SCREEN SWITCH
+===================================================== */
+
+function showRegister(){
+
+document
+.getElementById("loginForm")
+.classList.add("hidden");
+
+document
+.getElementById("registerForm")
+.classList.remove("hidden");
+
+}
+
+
+function showLogin(){
+
+document
+.getElementById("registerForm")
+.classList.add("hidden");
+
+document
+.getElementById("loginForm")
+.classList.remove("hidden");
+
+}
+
+
+/* =====================================================
+   CREATE RESTAURANT
+===================================================== */
+
+function registerRestaurant(){
+
+const name =
+document
+.getElementById("registerRestaurant")
+.value.trim();
+
+const owner =
+document
+.getElementById("registerOwner")
+.value.trim();
+
+const email =
+document
+.getElementById("registerEmail")
+.value.trim();
+
+const password =
+document
+.getElementById("registerPassword")
+.value;
+
+const confirm =
+document
+.getElementById("registerConfirm")
+.value;
+
+
+const message =
+document.getElementById(
+"registerMessage"
+);
+
+
+if(
+!name ||
+!owner ||
+!email ||
+!password ||
+!confirm
+){
+
+message.style.color="#d33";
+
+message.innerText=
+"Please fill all fields.";
+
+return;
+
+}
+
+
+if(password.length<8){
+
+message.style.color="#d33";
+
+message.innerText=
+"Password must contain at least 8 characters.";
+
+return;
+
+}
+
+
+if(password!==confirm){
+
+message.style.color="#d33";
+
+message.innerText=
+"Passwords do not match.";
+
+return;
+
+}
+
+
+if(
+database.restaurants.some(
+r =>
+r.email.toLowerCase()
+===
+email.toLowerCase()
+)
+){
+
+message.style.color="#d33";
+
+message.innerText=
+"This email is already registered.";
+
+return;
+
+}
+
+
+/* Create restaurant */
+
+const restaurant={
+
+id:
+"REST_"+Date.now(),
+
+name:name,
+
+owner:owner,
+
+email:email,
+
+password:password,
+
+tax:{
+    cgst:2.5,
+    sgst:2.5,
+    service:0
+},
+
+tables:[],
+
+menu:[],
+
+orders:[]
+
+};
+
+
+/* =====================================================
+   CREATE 12 TABLES
+===================================================== */
+
+for(
+let i=1;
+i<=12;
+i++
+){
+
+restaurant.tables.push({
+
+id:
+"TABLE_"+Date.now()+"_"+i,
+
+number:i,
+
+qrToken:
+"QR_"+
+restaurant.id+
+"_TABLE_"+
+i+
+"_"+
+Math.random()
+.toString(36)
+.substring(2,10)
+
+});
+
+}
+
+
+/* =====================================================
+   DEFAULT MENU
+===================================================== */
+
+restaurant.menu=[
+
+{
+id:"MENU_"+Date.now()+"_1",
+name:"Classic Cheeseburger",
+category:"Main Course",
+price:160,
+icon:"🍔",
+available:true
+},
+
+{
+id:"MENU_"+Date.now()+"_2",
+name:"French Fries",
+category:"Starters",
+price:90,
+icon:"🍟",
+available:true
+},
+
+{
+id:"MENU_"+Date.now()+"_3",
+name:"Cold Coffee",
+category:"Drinks",
+price:90,
+icon:"🥤",
+available:true
+},
+
+{
+id:"MENU_"+Date.now()+"_4",
+name:"Paneer Pizza",
+category:"Main Course",
+price:220,
+icon:"🍕",
+available:true
+},
+
+{
+id:"MENU_"+Date.now()+"_5",
+name:"Chicken Pasta",
+category:"Main Course",
+price:245,
+icon:"🍝",
+available:true
+},
+
+{
+id:"MENU_"+Date.now()+"_6",
+name:"Chocolate Shake",
+category:"Drinks",
+price:140,
+icon:"🥤",
+available:true
+}
+
+];
+
+
+database.restaurants.push(
+restaurant
+);
+
+database.currentRestaurant=
+restaurant.id;
+
+save();
+
+
+message.style.color="#0a9b67";
+
+message.innerText=
+"✓ Account created successfully";
+
+
+setTimeout(
+startOwner,
+600
+);
+
+}
+
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+function login(){
+
+const email =
+document
+.getElementById("loginEmail")
+.value
+.trim()
+.toLowerCase();
+
+const password =
+document
+.getElementById("loginPassword")
+.value;
+
+
+const restaurant =
+database.restaurants.find(
+r =>
+r.email.toLowerCase()===email
+&&
+r.password===password
+);
+
+
+const message =
+document.getElementById(
+"loginMessage"
+);
+
+
+if(!restaurant){
+
+message.style.color="#d33";
+
+message.innerText=
+"Invalid email or password.";
+
+return;
+
+}
+
+
+database.currentRestaurant=
+restaurant.id;
+
+save();
+
+startOwner();
+
+}
+
+
+/* =====================================================
+   START OWNER
+===================================================== */
+
+function startOwner(){
+
+const restaurant=
+currentRestaurant();
+
+if(!restaurant)
+return;
+
+
+document
+.getElementById("authScreen")
+.style.display="none";
+
+document
+.getElementById("customerApp")
+.style.display="none";
+
+document
+.getElementById("ownerApp")
+.style.display="block";
+
+
+document
+.getElementById("restaurantName")
+.innerText=
+restaurant.name;
+
+
+document
+.getElementById("ownerName")
+.innerText=
+restaurant.owner;
+
+
+document
+.getElementById("avatar")
+.innerText=
+restaurant.owner
+.substring(0,2)
+.toUpperCase();
+
+
+openPage("dashboard");
+
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+function logout(){
+
+database.currentRestaurant=null;
+
+save();
+
+location.reload();
+
+}
+
+
+/* =====================================================
+   PAGE NAVIGATION
+===================================================== */
+
+function openPage(
+page,
+button
+){
+
+document
+.querySelectorAll(".nav button")
+.forEach(
+b=>b.classList.remove("active")
+);
+
+
+if(button)
+button.classList.add("active");
+
+
+const titles={
+
+dashboard:"Dashboard",
+orders:"Active Orders",
+tables:"Table Management",
+menu:"Menu Management",
+pos:"New Order",
+kitchen:"Kitchen / KOT",
+qr:"QR Manager",
+settings:"Settings"
+
+};
+
+
+document
+.getElementById("pageTitle")
+.innerText=
+titles[page];
+
+
+const pages={
+
+dashboard:dashboardPage,
+orders:ordersPage,
+tables:tablesPage,
+menu:menuPage,
+pos:posPage,
+kitchen:kitchenPage,
+qr:qrPage,
+settings:settingsPage
+
+};
+
+
+document
+.getElementById("pageContent")
+.innerHTML=
+pages[page]();
+
+
+if(page==="pos")
+renderOwnerCart();
+
+}
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+function dashboardPage(){
+
+const r=currentRestaurant();
+
+const active=
+r.orders.filter(
+o =>
+[
+"NEW",
+"ACCEPTED",
+"PREPARING",
+"READY"
+]
+.includes(o.status)
+);
+
+
+const occupied=
+new Set(
+active.map(
+o=>o.table
+)
+).size;
+
+
+const sales=
+r.orders.reduce(
+(total,o)=>
+o.status!=="CANCELLED"
+?
+total+o.total
+:
+total,
+0
+);
+
+
+return `
+
+<div class="grid stats">
+
+<div class="card stat">
+
+<span>
+Today's Sales
+</span>
+
+<strong>
+${money(sales)}
+</strong>
+
+<em class="green-text">
+Live
+</em>
+
+</div>
+
+
+<div class="card stat">
+
+<span>
+Active Orders
+</span>
+
+<strong>
+${active.length}
+</strong>
+
+<em class="green-text">
+Kitchen connected
+</em>
+
+</div>
+
+
+<div class="card stat">
+
+<span>
+Tables Occupied
+</span>
+
+<strong>
+${occupied}/${r.tables.length}
+</strong>
+
+<em class="green-text">
+Live status
+</em>
+
+</div>
+
+
+<div class="card stat">
+
+<span>
+Menu Items
+</span>
+
+<strong>
+${r.menu.length}
+</strong>
+
+<em class="green-text">
+Catalogue
+</em>
+
+</div>
+
+</div>
+
+
+<div
+class="grid two"
+style="margin-top:16px"
+>
+
+<div class="card">
+
+<div class="card-head">
+
+<h2>
+Sales Overview
+</h2>
+
+<span class="muted">
+Performance
+</span>
+
+</div>
+
+<div class="chart">
+
+${[45,60,50,75,62,88,70]
+.map(
+(h,i)=>`
+
+<div class="bar-wrap">
+
+<div
+class="bar"
+style="height:${h}%"
+></div>
+
+<small>
+${["M","T","W","T","F","S","S"][i]}
+</small>
+
+</div>
+
+`
+).join("")}
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-head">
+
+<h2>
+Recent Orders
+</h2>
+
+<button
+class="secondary"
+onclick="openPage('orders')"
+>
+View all
+</button>
+
+</div>
+
+${
+r.orders
+.slice()
+.reverse()
+.slice(0,6)
+.map(orderHTML)
+.join("")
+||
+`
+<p class="muted">
+No orders yet.
+</p>
+`
+}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   ORDER HTML
+===================================================== */
+
+function orderHTML(o){
+
+return `
+
+<div class="order-row">
+
+<div class="table-icon">
+T${o.table}
+</div>
+
+<div>
+
+<b>
+Order #${o.id.slice(-6)}
+</b>
+
+<small>
+${o.items
+.map(
+x=>x.name+" × "+x.qty
+)
+.join(", ")}
+</small>
+
+</div>
+
+<span
+class="badge
+${o.status==="READY"?"green":""}
+${o.status==="SERVED"?"blue":""}"
+>
+${o.status}
+</span>
+
+<strong>
+${money(o.total)}
+</strong>
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   ORDERS
+===================================================== */
+
+function ordersPage(){
+
+const r=currentRestaurant();
+
+return `
+
+<div class="card">
+
+<div class="card-head">
+
+<h2>
+Orders
+</h2>
+
+<span class="badge green">
+LIVE
+</span>
+
+</div>
+
+${
+r.orders
+.slice()
+.reverse()
+.map(
+o=>`
+
+<div class="order-row">
+
+<div class="table-icon">
+T${o.table}
+</div>
+
+<div>
+
+<b>
+Order #${o.id.slice(-6)}
+</b>
+
+<small>
+${o.items
+.map(
+x=>x.name+" × "+x.qty
+)
+.join(", ")}
+</small>
+
+</div>
+
+<span class="badge">
+${o.status}
+</span>
+
+<button
+class="primary"
+onclick="updateOrder('${o.id}')"
+>
+UPDATE
+</button>
+
+</div>
+
+`
+)
+.join("")
+||
+`
+<p class="muted">
+No orders found.
+</p>
+`
+}
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   UPDATE ORDER
+===================================================== */
+
+function updateOrder(id){
+
+const r=currentRestaurant();
+
+const order=
+r.orders.find(
+o=>o.id===id
+);
+
+if(!order)
+return;
+
+
+const next={
+
+NEW:"ACCEPTED",
+
+ACCEPTED:"PREPARING",
+
+PREPARING:"READY",
+
+READY:"SERVED"
+
+}[order.status];
+
+
+if(!next)
+return;
+
+
+if(next==="PREPARING"){
+
+const mins=
+Number(
+prompt(
+"Chef preparation time in minutes:",
+"20"
+)
+);
+
+if(!mins)
+return;
+
+order.etaSeconds=
+mins*60;
+
+order.etaStarted=
+Date.now();
+
+}
+
+
+order.status=
+next;
+
+save();
+
+openPage("orders");
+
+}
+
+
+/* =====================================================
+   TABLES
+===================================================== */
+
+function tablesPage(){
+
+const r=currentRestaurant();
+
+return `
+
+<div class="card">
+
+<div class="card-head">
+
+<div>
+
+<h2>
+Tables
+</h2>
+
+<span class="muted">
+Every table has its own QR
+</span>
+
+</div>
+
+<button
+class="primary"
+onclick="addTable()"
+>
+＋ ADD TABLE
+</button>
+
+</div>
+
+
+<div class="table-grid">
+
+${r.tables
+.map(
+table=>{
+
+const busy=
+r.orders.some(
+o =>
+o.table===table.number
+&&
+[
+"NEW",
+"ACCEPTED",
+"PREPARING",
+"READY"
+]
+.includes(o.status)
+);
+
+
+return `
+
+<div
+class="table-card
+${busy?"busy":""}"
+>
+
+<b>
+Table ${table.number}
+</b>
+
+<span>
+${busy?"Occupied":"Available"}
+</span>
+
+<small>
+
+<button
+class="outline"
+onclick="
+selectedTable=${table.number};
+openPage('qr')
+"
+>
+⌗ QR
+</button>
+
+</small>
+
+</div>
+
+`;
+
+}
+)
+.join("")}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   ADD TABLE
+===================================================== */
+
+function addTable(){
+
+const r=currentRestaurant();
+
+const number=
+Number(
+prompt("Enter table number:")
+);
+
+if(!number)
+return;
+
+
+if(
+r.tables.some(
+t=>t.number===number
+)
+){
+
+alert(
+"That table already exists."
+);
+
+return;
+
+}
+
+
+r.tables.push({
+
+id:
+"TABLE_"+Date.now(),
+
+number:number,
+
+qrToken:
+"QR_"+
+r.id+
+"_TABLE_"+
+number+
+"_"+Date.now()
+
+});
+
+
+save();
+
+openPage("tables");
+
+}
+
+
+/* =====================================================
+   MENU PAGE
+===================================================== */
+
+function menuPage(){
+
+const r=currentRestaurant();
+
+return `
+
+<div class="card">
+
+<div class="card-head">
+
+<div>
+
+<h2>
+Menu Management
+</h2>
+
+<span class="muted">
+Manage food items and prices.
+</span>
+
+</div>
+
+<button
+class="primary"
+onclick="addMenuItem()"
+>
+＋ ADD ITEM
+</button>
+
+</div>
+
+
+<input
+class="search"
+placeholder="⌕ Search menu..."
+oninput="filterMenu(this.value)"
+>
+
+
+<div id="menuList">
+
+${r.menu
+.map(
+item=>`
+
+<div class="menu-row">
+
+<div class="food-icon">
+${item.icon}
+</div>
+
+<div>
+
+<b>
+${item.name}
+</b>
+
+<small>
+${item.category}
+·
+${item.available?"Available":"Unavailable"}
+</small>
+
+</div>
+
+<strong>
+${money(item.price)}
+</strong>
+
+<button
+class="outline"
+onclick="
+toggleMenu('${item.id}')
+"
+>
+${item.available?"DISABLE":"ENABLE"}
+</button>
+
+</div>
+
+`
+)
+.join("")}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   MENU SEARCH
+===================================================== */
+
+function filterMenu(query){
+
+document
+.querySelectorAll("#menuList .menu-row")
+.forEach(
+row=>{
+
+row.style.display=
+row.innerText
+.toLowerCase()
+.includes(
+query.toLowerCase()
+)
+?
+"grid"
+:
+"none";
+
+}
+);
+
+}
+
+
+/* =====================================================
+   ADD MENU
+===================================================== */
+
+function addMenuItem(){
+
+const r=currentRestaurant();
+
+const name=
+prompt("Food item name:");
+
+if(!name)
+return;
+
+
+const price=
+Number(
+prompt("Price:")
+);
+
+if(!price)
+return;
+
+
+const category=
+prompt(
+"Category:",
+"Main Course"
+);
+
+
+const icon=
+prompt(
+"Emoji:",
+"🍽️"
+);
+
+
+r.menu.push({
+
+id:
+"MENU_"+Date.now(),
+
+name:name,
+
+category:
+category||"Main Course",
+
+price:price,
+
+icon:
+icon||"🍽️",
+
+available:true
+
+});
+
+
+save();
+
+openPage("menu");
+
+}
+
+
+/* =====================================================
+   TOGGLE MENU
+===================================================== */
+
+function toggleMenu(id){
+
+const r=currentRestaurant();
+
+const item=
+r.menu.find(
+x=>x.id===id
+);
+
+if(item)
+item.available=
+!item.available;
+
+save();
+
+openPage("menu");
+
+}
+
+
+/* =====================================================
+   OWNER POS
+===================================================== */
+
+function posPage(){
+
+const r=currentRestaurant();
+
+return `
+
+<div class="grid pos-grid">
+
+<div class="card">
+
+<div class="card-head">
+
+<h2>
+New Order
+</h2>
+
+<span class="badge blue">
+TABLE ${selectedTable}
+</span>
+
+</div>
+
+
+<input
+class="search"
+placeholder="⌕ Search food..."
+oninput="filterPOS(this.value)"
+>
+
+
+<div id="posList">
+
+${r.menu
+.filter(x=>x.available)
+.map(
+item=>`
+
+<div class="menu-row">
+
+<div class="food-icon">
+${item.icon}
+</div>
+
+<div>
+
+<b>
+${item.name}
+</b>
+
+<small>
+${item.category}
+</small>
+
+</div>
+
+<strong>
+${money(item.price)}
+</strong>
+
+<button
+class="outline"
+onclick="
+addOwnerCart('${item.id}')
+"
+>
+ADD
+</button>
+
+</div>
+
+`
+)
+.join("")}
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-head">
+
+<h2>
+Cart
+</h2>
+
+</div>
+
+<div id="ownerCart"></div>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   POS SEARCH
+===================================================== */
+
+function filterPOS(query){
+
+document
+.querySelectorAll("#posList .menu-row")
+.forEach(
+row=>{
+
+row.style.display=
+row.innerText
+.toLowerCase()
+.includes(
+query.toLowerCase()
+)
+?
+"grid"
+:
+"none";
+
+}
+);
+
+}
+
+
+/* =====================================================
+   OWNER CART
+===================================================== */
+
+function addOwnerCart(id){
+
+const r=currentRestaurant();
+
+const item=
+r.menu.find(
+x=>x.id===id
+);
+
+if(!item)
+return;
+
+
+const existing=
+ownerCart.find(
+x=>x.id===id
+);
+
+if(existing)
+existing.qty++;
+
+else
+ownerCart.push({
+...item,
+qty:1
+});
+
+
+renderOwnerCart();
+
+}
+
+
+function renderOwnerCart(){
+
+const box=
+document.getElementById(
+"ownerCart"
+);
+
+if(!box)
+return;
+
+
+if(!ownerCart.length){
+
+box.innerHTML=
+`
+<p class="muted">
+Cart is empty.
+</p>
+`;
+
+return;
+
+}
+
+
+const r=currentRestaurant();
+
+const subtotal=
+ownerCart.reduce(
+(a,x)=>
+a+
+Number(x.price)*x.qty,
+0
+);
+
+
+const taxRate=
+Number(r.tax.cgst)+
+Number(r.tax.sgst)+
+Number(r.tax.service);
+
+
+const tax=
+subtotal*taxRate/100;
+
+
+const total=
+subtotal+tax;
+
+
+box.innerHTML=
+
+ownerCart
+.map(
+(item,index)=>`
+
+<div class="cart-row">
+
+<span>
+${item.icon}
+</span>
+
+<div>
+
+<b>
+${item.name}
+</b>
+
+<small>
+${money(item.price)}
+</small>
+
+</div>
+
+<div class="qty">
+
+<button
+onclick="
+ownerCart[${index}].qty--;
+if(ownerCart[${index}].qty<=0)
+ownerCart.splice(${index},1);
+renderOwnerCart();
+"
+>
+−
+</button>
+
+${item.qty}
+
+<button
+onclick="
+ownerCart[${index}].qty++;
+renderOwnerCart();
+"
+>
++
+</button>
+
+</div>
+
+</div>
+
+`
+)
+.join("")
+
++
+
+`
+
+<div style="margin-top:15px">
+
+<div class="bill">
+<span>Subtotal</span>
+<b>${money(subtotal)}</b>
+</div>
+
+<div class="bill">
+<span>Tax</span>
+<b>${money(tax)}</b>
+</div>
+
+<div class="bill total">
+<span>Total</span>
+<b>${money(total)}</b>
+</div>
+
+<button
+class="primary full"
+onclick="sendOwnerOrder()"
+>
+SEND TO KITCHEN →
+</button>
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   OWNER ORDER
+===================================================== */
+
+function sendOwnerOrder(){
+
+if(!ownerCart.length)
+return;
+
+
+const r=currentRestaurant();
+
+const subtotal=
+ownerCart.reduce(
+(a,x)=>
+a+
+Number(x.price)*x.qty,
+0
+);
+
+
+const taxRate=
+Number(r.tax.cgst)+
+Number(r.tax.sgst)+
+Number(r.tax.service);
+
+
+const tax=
+subtotal*taxRate/100;
+
+
+const order={
+
+id:
+"ORDER_"+Date.now(),
+
+table:
+selectedTable,
+
+items:
+ownerCart.map(
+x=>({
+name:x.name,
+price:x.price,
+qty:x.qty
+})
+),
+
+subtotal:subtotal,
+
+tax:tax,
+
+total:
+subtotal+tax,
+
+status:"NEW",
+
+etaSeconds:0,
+
+etaStarted:null,
+
+createdAt:Date.now(),
+
+source:"OWNER_POS"
+
+};
+
+
+r.orders.push(order);
+
+ownerCart=[];
+
+save();
+
+alert(
+"✓ Order sent to kitchen."
+);
+
+openPage("kitchen");
+
+}
+
+
+/* =====================================================
+   KITCHEN
+===================================================== */
+
+function kitchenPage(){
+
+const r=currentRestaurant();
+
+const orders=
+r.orders
+.filter(
+o =>
+[
+"NEW",
+"ACCEPTED",
+"PREPARING",
+"READY"
+]
+.includes(o.status)
+)
+.reverse();
+
+
+return `
+
+<div class="card">
+
+<div class="card-head">
+
+<h2>
+Kitchen / KOT
+</h2>
+
+<span class="badge green">
+LIVE
+</span>
+
+</div>
+
+
+${
+orders
+.map(
+o=>`
+
+<div class="order-row">
+
+<div class="table-icon">
+T${o.table}
+</div>
+
+<div>
+
+<b>
+Order #${o.id.slice(-6)}
+</b>
+
+<small>
+${o.items
+.map(
+x=>x.name+" × "+x.qty
+)
+.join(", ")}
+</small>
+
+</div>
+
+<span class="badge">
+${o.status}
+</span>
+
+<button
+class="primary"
+onclick="
+updateOrder('${o.id}')
+"
+>
+UPDATE
+</button>
+
+</div>
+
+`
+)
+.join("")
+||
+`
+<p class="muted">
+Kitchen is clear.
+</p>
+`
+}
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   QR MANAGER
+===================================================== */
+
+function qrPage(){
+
+const r=currentRestaurant();
+
+const table=
+r.tables.find(
+t=>t.number===selectedTable
+)
+||
+r.tables[0];
+
+
+if(!table){
+
+return `
+<div class="card">
+Create a table first.
+</div>
+`;
+
+}
+
+
+/*
+   Customer URL
+
+   Example:
+
+   index.html
+   ?customer=1
+   &restaurant=REST_xxx
+   &table=QR_xxx
+*/
+
+const url=
+location.href.split("?")[0]
++
+"?customer=1"
++
+"&restaurant="+
+encodeURIComponent(r.id)
++
+"&table="+
+encodeURIComponent(table.qrToken);
+
+
+/*
+   QR rendering service.
+
+   For real production,
+   this should be replaced with
+   server-generated QR.
+*/
+
+const qrImage=
+"https://api.qrserver.com/v1/create-qr-code/?size=500x500&data="
++
+encodeURIComponent(url);
+
+
+return `
+
+<div class="qr-layout">
+
+<div class="card qr-box">
+
+<div class="card-head">
+
+<h2>
+Table ${table.number}
+</h2>
+
+<span class="badge green">
+UNIQUE QR
+</span>
+
+</div>
+
+
+<img
+src="${qrImage}"
+alt="Table QR"
+>
+
+
+<p
+class="muted"
+style="word-break:break-all"
+>
+${url}
+</p>
+
+
+<button
+class="primary"
+style="margin-top:12px"
+onclick="
+openCustomer(
+'${r.id}',
+'${table.qrToken}'
+)
+"
+>
+OPEN CUSTOMER MENU
+</button>
+
+</div>
+
+
+<div class="card">
+
+<h2>
+QR Flow
+</h2>
+
+<div class="flow">
+01 · Customer enters restaurant
+</div>
+
+<div class="flow">
+02 · Customer sits at Table ${table.number}
+</div>
+
+<div class="flow">
+03 · Customer scans QR
+</div>
+
+<div class="flow">
+04 · QR identifies restaurant + table
+</div>
+
+<div class="flow">
+05 · Customer sees menu
+</div>
+
+<div class="flow">
+06 · Customer places order
+</div>
+
+<div class="flow">
+07 · Kitchen receives order
+</div>
+
+<div class="flow">
+08 · Chef sets preparation time
+</div>
+
+<div class="flow">
+09 · Customer sees countdown
+</div>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   CUSTOMER OPEN
+===================================================== */
+
+function openCustomer(
+restaurantId,
+token
+){
+
+const r=
+database.restaurants.find(
+x=>x.id===restaurantId
+);
+
+if(!r)
+return;
+
+
+const table=
+r.tables.find(
+x=>x.qrToken===token
+);
+
+
+if(!table)
+return;
+
+
+selectedTable=
+table.number;
+
+
+document
+.getElementById("ownerApp")
+.style.display="none";
+
+
+document
+.getElementById("authScreen")
+.style.display="none";
+
+
+document
+.getElementById("customerApp")
+.style.display="block";
+
+
+document
+.getElementById("customerRestaurant")
+.innerText=
+r.name;
+
+
+document
+.getElementById("customerTable")
+.innerText=
+"TABLE "+table.number;
+
+
+document
+.getElementById("customerTableBig")
+.innerText=
+"T"+table.number;
+
+
+renderCustomerMenu();
+
+}
+
+
+/* =====================================================
+   CUSTOMER MENU
+===================================================== */
+
+function renderCustomerMenu(){
+
+const params=
+new URLSearchParams(
+location.search
+);
+
+
+const restaurantId=
+params.get("restaurant");
+
+
+const token=
+params.get("table");
+
+
+let r=
+database.restaurants.find(
+x=>x.id===restaurantId
+);
+
+
+if(!r){
+
+r=currentRestaurant();
+
+}
+
+
+if(!r)
+return;
+
+
+const table=
+r.tables.find(
+x=>x.qrToken===token
+)
+||
+r.tables.find(
+x=>x.number===selectedTable
+);
+
+
+if(!table)
+return;
+
+
+document
+.getElementById("customerRestaurant")
+.innerText=
+r.name;
+
+
+document
+.getElementById("customerTable")
+.innerText=
+"TABLE "+table.number;
+
+
+document
+.getElementById("customerTableBig")
+.innerText=
+"T"+table.number;
+
+
+const query=
+document
+.getElementById("customerSearch")
+.value
+.toLowerCase();
+
+
+const menu=
+r.menu.filter(
+item =>
+item.available
+&&
+item.name
+.toLowerCase()
+.includes(query)
+);
+
+
+document
+.getElementById("customerFoods")
+.innerHTML=
+
+menu.map(
+item=>`
+
+<article
+class="customer-food"
+>
+
+<div class="image">
+${item.icon}
+</div>
+
+<div>
+
+<small>
+${item.category}
+</small>
+
+<h3>
+${item.name}
+</h3>
+
+<b>
+${money(item.price)}
+</b>
+
+<button
+onclick="
+addCustomerCart('${item.id}')
+"
+>
+ADD
+</button>
+
+</div>
+
+</article>
+
+`
+)
+.join("");
+
+
+renderCustomerCart();
+
+}
+
+
+/* =====================================================
+   CUSTOMER CART
+===================================================== */
+
+function addCustomerCart(id){
+
+const params=
+new URLSearchParams(
+location.search
+);
+
+
+const r=
+database.restaurants.find(
+x=>x.id===params.get("restaurant")
+)
+||
+currentRestaurant();
+
+
+if(!r)
+return;
+
+
+const item=
+r.menu.find(
+x=>x.id===id
+);
+
+
+if(!item)
+return;
+
+
+const existing=
+customerCart.find(
+x=>x.id===id
+);
+
+
+if(existing)
+existing.qty++;
+
+else
+customerCart.push({
+...item,
+qty:1
+});
+
+
+renderCustomerCart();
+
+}
+
+
+/* =====================================================
+   CUSTOMER CART RENDER
+===================================================== */
+
+function renderCustomerCart(){
+
+const box=
+document.getElementById(
+"customerCart"
+);
+
+const count=
+document.getElementById(
+"customerItemCount"
+);
+
+
+if(!box)
+return;
+
+
+const totalItems=
+customerCart.reduce(
+(a,x)=>a+x.qty,
+0
+);
+
+
+count.innerText=
+totalItems+" ITEMS";
+
+
+if(!customerCart.length){
+
+box.innerHTML=
+"Your cart is empty.";
+
+return;
+
+}
+
+
+const params=
+new URLSearchParams(
+location.search
+);
+
+
+const r=
+database.restaurants.find(
+x=>x.id===params.get("restaurant")
+)
+||
+currentRestaurant();
+
+
+const subtotal=
+customerCart.reduce(
+(a,x)=>
+a+
+Number(x.price)*x.qty,
+0
+);
+
+
+const rate=
+Number(r.tax.cgst)+
+Number(r.tax.sgst)+
+Number(r.tax.service);
+
+
+const tax=
+subtotal*rate/100;
+
+
+const total=
+subtotal+tax;
+
+
+box.innerHTML=
+
+customerCart
+.map(
+(item,index)=>`
+
+<div class="cart-row">
+
+<span>
+${item.icon}
+</span>
+
+<div>
+
+<b>
+${item.name}
+</b>
+
+<small>
+${money(item.price)}
+</small>
+
+</div>
+
+<div class="qty">
+
+<button
+onclick="
+customerCart[${index}].qty--;
+if(customerCart[${index}].qty<=0)
+customerCart.splice(${index},1);
+renderCustomerCart();
+"
+>
+−
+</button>
+
+${item.qty}
+
+<button
+onclick="
+customerCart[${index}].qty++;
+renderCustomerCart();
+"
+>
++
+</button>
+
+</div>
+
+</div>
+
+`
+)
+.join("")
+
++
+
+`
+
+<div style="margin-top:15px">
+
+<div class="bill">
+<span>Subtotal</span>
+<b>${money(subtotal)}</b>
+</div>
+
+<div class="bill">
+<span>Tax & Charges</span>
+<b>${money(tax)}</b>
+</div>
+
+<div class="bill total">
+<span>Total</span>
+<b>${money(total)}</b>
+</div>
+
+<button
+class="primary full"
+onclick="
+placeCustomerOrder()
+"
+>
+PLACE ORDER →
+</button>
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   CUSTOMER PLACE ORDER
+===================================================== */
+
+function placeCustomerOrder(){
+
+if(!customerCart.length){
+
+alert(
+"Your cart is empty."
+);
+
+return;
+
+}
+
+
+const params=
+new URLSearchParams(
+location.search
+);
+
+
+const r=
+database.restaurants.find(
+x=>x.id===params.get("restaurant")
+)
+||
+currentRestaurant();
+
+
+if(!r)
+return;
+
+
+const table=
+r.tables.find(
+x=>x.qrToken===params.get("table")
+)
+||
+r.tables.find(
+x=>x.number===selectedTable
+);
+
+
+if(!table){
+
+alert(
+"Invalid table."
+);
+
+return;
+
+}
+
+
+const subtotal=
+customerCart.reduce(
+(a,x)=>
+a+
+Number(x.price)*x.qty,
+0
+);
+
+
+const rate=
+Number(r.tax.cgst)+
+Number(r.tax.sgst)+
+Number(r.tax.service);
+
+
+const tax=
+subtotal*rate/100;
+
+
+const order={
+
+id:
+"ORDER_"+Date.now(),
+
+table:
+table.number,
+
+items:
+customerCart.map(
+x=>({
+
+name:x.name,
+
+price:x.price,
+
+qty:x.qty
+
+})
+),
+
+subtotal:subtotal,
+
+tax:tax,
+
+total:
+subtotal+tax,
+
+status:"NEW",
+
+etaSeconds:0,
+
+etaStarted:null,
+
+createdAt:
+Date.now(),
+
+source:"CUSTOMER_QR"
+
+};
+
+
+r.orders.push(order);
+
+customerCart=[];
+
+save();
+
+renderCustomerCart();
+
+
+document
+.getElementById("customerStatus")
+.innerHTML=`
+
+<div class="customer-status">
+
+<b>
+✓ ORDER CONFIRMED
+</b>
+
+<p
+style="font-size:9px;margin-top:8px"
+>
+Table ${table.number}
+·
+Order sent to kitchen.
+</p>
+
+<div style="margin-top:12px">
+Chef ETA
+</div>
+
+<span
+class="eta"
+id="customerETA"
+>
+WAITING...
+</span>
+
+<p
+id="customerOrderStatus"
+style="font-size:9px;margin-top:8px"
+>
+Waiting for kitchen confirmation...
+</p>
+
+</div>
+
+`;
+
+
+trackCustomerOrder(
+r.id,
+order.id
+);
+
+}
+
+
+/* =====================================================
+   CUSTOMER TRACKING
+===================================================== */
+
+function trackCustomerOrder(
+restaurantId,
+orderId
+){
+
+setInterval(
+()=>{
+
+const r=
+database.restaurants.find(
+x=>x.id===restaurantId
+);
+
+
+if(!r)
+return;
+
+
+const order=
+r.orders.find(
+x=>x.id===orderId
+);
+
+
+if(!order)
+return;
+
+
+const eta=
+document.getElementById(
+"customerETA"
+);
+
+const status=
+document.getElementById(
+"customerOrderStatus"
+);
+
+
+if(status){
+
+status.innerText=
+"Status: "+
+order.status;
+
+}
+
+
+if(
+order.etaStarted
+&&
+order.etaSeconds>0
+){
+
+const elapsed=
+Math.floor(
+(Date.now()-order.etaStarted)/1000
+);
+
+
+const remaining=
+Math.max(
+0,
+order.etaSeconds-elapsed
+);
+
+
+if(eta){
+
+const mins=
+Math.floor(
+remaining/60
+);
+
+const secs=
+remaining%60;
+
+
+eta.innerText=
+String(mins)
+.padStart(2,"0")
++
+":"
++
+String(secs)
+.padStart(2,"0");
+
+}
+
+}else{
+
+if(eta){
+
+eta.innerText=
+order.status==="READY"
+?
+"READY"
+:
+"WAITING";
+
+}
+
+}
+
+},
+1000
+);
+
+}
+
+
+/* =====================================================
+   SETTINGS
+===================================================== */
+
+function settingsPage(){
+
+const r=currentRestaurant();
+
+return `
+
+<div class="grid two">
+
+<div class="card">
+
+<h2>
+Restaurant Profile
+</h2>
+
+<p
+class="muted"
+style="margin-top:8px"
+>
+Your restaurant account.
+</p>
+
+
+<div class="flow">
+Restaurant:
+<b>${r.name}</b>
+</div>
+
+
+<div class="flow">
+Owner:
+<b>${r.owner}</b>
+</div>
+
+
+<div class="flow">
+Email:
+<b>${r.email}</b>
+</div>
+
+
+</div>
+
+
+<div class="card">
+
+<h2>
+Tax Settings
+</h2>
+
+<p
+class="muted"
+style="margin:8px 0 15px"
+>
+These values are used on customer bills.
+</p>
+
+
+<label class="muted">
+CGST %
+
+<input
+id="taxCGST"
+class="input"
+type="number"
+step="0.01"
+value="${r.tax.cgst}"
+>
+</label>
+
+
+<label class="muted">
+SGST %
+
+<input
+id="taxSGST"
+class="input"
+type="number"
+step="0.01"
+value="${r.tax.sgst}"
+>
+</label>
+
+
+<label class="muted">
+Service Charge %
+
+<input
+id="taxService"
+class="input"
+type="number"
+step="0.01"
+value="${r.tax.service}"
+>
+</label>
+
+
+<button
+class="primary"
+onclick="saveTax()"
+>
+SAVE TAX SETTINGS
+</button>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   SAVE TAX
+===================================================== */
+
+function saveTax(){
+
+const r=currentRestaurant();
+
+r.tax.cgst=
+Number(
+document.getElementById(
+"taxCGST"
+).value
+);
+
+r.tax.sgst=
+Number(
+document.getElementById(
+"taxSGST"
+).value
+);
+
+r.tax.service=
+Number(
+document.getElementById(
+"taxService"
+).value
+);
+
+
+save();
+
+alert(
+"✓ Tax settings saved."
+);
+
+}
+
+
+/* =====================================================
+   MONEY
+===================================================== */
+
+function money(value){
+
+return "₹"+
+Number(value)
+.toLocaleString(
+"en-IN",
+{
+maximumFractionDigits:2
+}
+);
+
+}
+
+
+/* =====================================================
+   CUSTOMER URL MODE
+===================================================== */
+
+function checkCustomerMode(){
+
+const params=
+new URLSearchParams(
+location.search
+);
+
+
+if(
+params.get("customer")!=="1"
+)
+return;
+
+
+const restaurant=
+database.restaurants.find(
+r =>
+r.id===params.get("restaurant")
+);
+
+
+if(!restaurant){
+
+document.body.innerHTML=
+`
+<div style="
+padding:40px;
+font-family:Arial;
+text-align:center
+">
+<h2>
+Invalid restaurant QR
+</h2>
+</div>
+`;
+
+return;
+
+}
+
+
+const table=
+restaurant.tables.find(
+t =>
+t.qrToken===params.get("table")
+);
+
+
+if(!table){
+
+document.body.innerHTML=
+`
+<div style="
+padding:40px;
+font-family:Arial;
+text-align:center
+">
+<h2>
+Invalid table QR
+</h2>
+</div>
+`;
+
+return;
+
+}
+
+
+document
+.getElementById("authScreen")
+.style.display="none";
+
+
+document
+.getElementById("ownerApp")
+.style.display="none";
+
+
+document
+.getElementById("customerApp")
+.style.display="block";
+
+
+selectedTable=
+table.number;
+
+
+document
+.getElementById("customerRestaurant")
+.innerText=
+restaurant.name;
+
+
+document
+.getElementById("customerTable")
+.innerText=
+"TABLE "+table.number;
+
+
+document
+.getElementById("customerTableBig")
+.innerText=
+"T"+table.number;
+
+
+renderCustomerMenu();
+
+}
+
+
+/* =====================================================
+   AUTO START
+===================================================== */
+
+if(database.currentRestaurant){
+
+startOwner();
+
+}
+
+checkCustomerMode();
+
+</script>
+
+</body>
+</html>
