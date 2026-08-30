@@ -23,6 +23,81 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:active{tr
 .modal{position:fixed;inset:0;background:#00172d99;display:grid;place-items:center;padding:14px;z-index:100}.box{background:#fff;border-radius:14px;width:min(540px,95vw);max-height:92vh;overflow:auto;padding:20px}.close{float:right;border:0;background:#edf2f7;border-radius:50%;width:29px;height:29px}
 .customer{max-width:700px;margin:auto}.chead{height:62px;background:var(--nav);color:#fff;padding:12px 15px;position:sticky;top:0;z-index:20}.wrap{padding:13px 13px 90px}.hero{background:linear-gradient(135deg,#0872ee,#16b8df);color:#fff;padding:20px;border-radius:13px;margin-bottom:9px}.hero h1{margin:5px 0;font-size:23px}.citem{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin:7px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}.cartbar{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:min(670px,94vw);background:var(--blue);color:#fff;border-radius:10px;padding:12px;z-index:30}.timer{font-size:46px;text-align:center;font-weight:950;color:var(--blue)}.timeline{display:flex;justify-content:space-between;margin:23px 0}.node{text-align:center;font-size:10px;color:var(--mut)}.node.on{color:var(--green);font-weight:900}
 .notice{padding:11px;border-radius:9px;background:#fff8df;border:1px solid #f0dc98;color:#795d09;font-size:11px;margin:10px 0}.successBox{padding:11px;border-radius:9px;background:#e9f9f1;color:#137648;font-size:11px}.qrbox{display:grid;place-items:center;padding:15px}
+
+.mobile-menu-btn{display:none;border:0;background:#eaf1f8;color:#173b5d;border-radius:9px;width:40px;height:40px;font-size:22px;font-weight:900}
+.side-backdrop{display:none}
+@media(max-width:700px){
+  html,body{width:100%;overflow-x:hidden}
+  .top{height:58px;padding:0 8px;gap:7px}
+  .top .brand{font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .top .brand small{font-size:9px}
+  .topright{min-width:0;gap:5px}
+  .topright b{display:none}
+  .topright .btn{padding:8px 9px;font-size:11px}
+  .mobile-menu-btn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px}
+  .layout{display:block}
+  .side{
+    display:block;
+    position:fixed;
+    z-index:90;
+    left:0;
+    top:58px;
+    bottom:0;
+    width:min(285px,82vw);
+    min-height:0;
+    overflow-y:auto;
+    transform:translateX(-105%);
+    transition:transform .2s ease;
+    box-shadow:12px 0 35px #00172d33;
+  }
+  body.menu-open .side{transform:translateX(0)}
+  .side-backdrop{
+    display:block;
+    position:fixed;
+    inset:58px 0 0 0;
+    z-index:80;
+    background:#00172d66;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  body.menu-open .side-backdrop{opacity:1;pointer-events:auto}
+  .main{padding:9px;min-width:0}
+  .head{align-items:flex-start;flex-wrap:wrap}
+  .head>div{min-width:0}
+  .head h1{font-size:19px}
+  .head .btn{width:auto;max-width:100%}
+  .cards{grid-template-columns:1fr 1fr;gap:7px}
+  .card{padding:11px;min-width:0}
+  .grid3,.pos,.kanban{grid-template-columns:1fr}
+  .foodgrid{grid-template-columns:1fr 1fr}
+  .food{padding:11px;min-height:82px}
+  .tgrid{grid-template-columns:1fr 1fr}
+  .line{flex-wrap:wrap;align-items:center}
+  .line>span:first-child{min-width:0;overflow-wrap:anywhere}
+  .table{display:block;overflow-x:auto;white-space:nowrap}
+  .box{width:calc(100vw - 20px);max-width:none;max-height:88vh;padding:15px}
+  .modal{padding:10px}
+  .modal .btn{min-height:42px}
+  .field,.search,select{font-size:16px;min-height:44px}
+  .tabs{padding-bottom:2px}
+  .tabs button{min-height:40px}
+  .customer{width:100%;max-width:700px}
+  .chead{height:auto;min-height:58px}
+  .citem{align-items:flex-start}
+  .citem .btn{min-width:72px}
+  .cartbar{bottom:8px;width:calc(100vw - 16px);padding:10px}
+  .cartbar .btn{min-height:40px}
+  .quick{grid-template-columns:1fr 1fr}
+  .notice{font-size:12px}
+}
+@media(max-width:390px){
+  .cards{grid-template-columns:1fr}
+  .foodgrid{grid-template-columns:1fr}
+  .quick{grid-template-columns:1fr}
+  .head .btn{width:100%}
+  .top .brand{font-size:17px}
+}
 @media(max-width:1050px){.cards{grid-template-columns:repeat(3,1fr)}.grid3{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.top{height:58px;padding:0 10px}.layout{display:block}.side{display:none}.main{padding:10px}.cards{grid-template-columns:1fr 1fr;gap:7px}.card{padding:12px}.grid3,.pos,.kanban{grid-template-columns:1fr}.foodgrid{grid-template-columns:1fr 1fr}.tgrid{grid-template-columns:1fr 1fr}.head h1{font-size:20px}.metric strong{font-size:20px}.topright .btn{padding:8px}.customer .wrap{padding:10px 10px 90px}.hero h1{font-size:21px}}
 @media(max-width:380px){.cards{grid-template-columns:1fr}.foodgrid{grid-template-columns:1fr}}
@@ -145,15 +220,20 @@ async function logout(){await sb.auth.signOut();db.session=null;save();auth();}
 function current(){return db.restaurants.find(r=>r.id===db.session)}
 const nav=[["dashboard","▦","Dashboard"],["pos","▣","POS / Billing"],["orders","◉","Orders"],["kitchen","♨","Kitchen / KOT"],["tables","▦","Tables & QR"],["menu","☷","Menu"],["inventory","◒","Inventory"],["reports","◔","Reports"],["customers","♙","Customers"],["settings","⚙","Settings"],["subscription","◆","Subscription"]];
 function shell(r){
-return `<div class=top><div class=brand>WEB<span>LYFT</span> <small class=mut>Restaurant OS</small></div>
+return `<div class=top><button class="mobile-menu-btn" aria-label="Open navigation" onclick="toggleSide()">☰</button><div class=brand>WEB<span>LYFT</span> <small class=mut>Restaurant OS</small></div>
 <div class=topright><b class=small>${esc(r.name)}</b><button class="btn soft" onclick=logout()>Logout</button></div></div>
+<div class="side-backdrop" onclick="toggleSide(false)"></div>
 <div class=layout><aside class=side><b style="font-size:18px">WEBLYFT</b><small style="display:block">Restaurant Operating System</small>
 <div class=rid><b>${esc(r.name)}</b><br><small>Restaurant ID • ${r.id}</small></div>
 <div class=nav>${nav.map(n=>`<button class="${page===n[0]?"active":""}" onclick="go('${n[0]}')">${n[1]} &nbsp; ${n[2]}</button>`).join("")}</div>
 </aside><main class=main id=main></main></div>`;
 }
 async function owner(){let r=current();$("app").innerHTML=shell(r);try{await loadCloud(r);$("app").innerHTML=shell(r);render()}catch(e){render();console.warn(e)}}
-function go(p){page=p;owner()}
+function toggleSide(force){
+  const open=typeof force==="boolean"?force:!document.body.classList.contains("menu-open");
+  document.body.classList.toggle("menu-open",open);
+}
+function go(p){page=p;toggleSide(false);owner()}
 function render(){let f={dashboard,pos,orders,kitchen,tables,menu,inventory,reports,customers,settings,subscription}[page];let out=f();if(out instanceof Promise)out.then(x=>main.innerHTML=x);else main.innerHTML=out}
 function getOrders(){return db.orders.filter(o=>o.rid===current().id).sort((a,b)=>b.id-a.id)}
 function dashboard(){
@@ -171,7 +251,7 @@ function pos(){
 let r=current(),cats=["All",...new Set(r.menu.map(x=>x.cat))],items=r.menu.filter(x=>x.active&&(pcat==="All"||x.cat===pcat)&&x.name.toLowerCase().includes(pq.toLowerCase())),sub=cart.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;
 return `<div class=head><div><h1>POS / Billing</h1><small class=mut>Manual order → KOT</small></div></div><div class=pos>
 <section class=card><input class=search value="${esc(pq)}" placeholder="Search menu..." oninput="pq=this.value;render()"><div class=tabs>${cats.map(c=>`<button class="${pcat===c?'on':''}" onclick="pcat='${esc(c)}';render()">${esc(c)}</button>`).join("")}</div>
-<div class=foodgrid>${items.map(m=>`<button class=food onclick="addCart(${m.id})"><b>${esc(m.name)}</b><small>${esc(m.cat)}</small><strong>${money(m.price)}</strong></button>`).join("")}</div></section>
+<div class=foodgrid>${items.map(m=>`<button class=food onclick="addCart('${m.id}')><b>${esc(m.name)}</b><small>${esc(m.cat)}</small><strong>${money(m.price)}</strong></button>`).join("")}</div></section>
 <section class=card><div class=line><b>TABLE</b><select id=pt>${r.tables.map(t=>`<option value="${t.no}">Table ${t.no}</option>`).join("")}</select></div>
 ${cart.map(x=>`<div class=line><span>${esc(x.name)} × ${x.qty}</span><b>${money(x.price*x.qty)}</b></div>`).join("")||"<p class=mut>Cart empty.</p>"}
 <div class=line><span>Subtotal</span><b>${money(sub)}</b></div><div class=line><span>Tax (${r.tax}%)</span><b>${money(tax)}</b></div>
@@ -209,7 +289,7 @@ setTimeout(()=>{let q=$("qrcode");if(q&&window.QRCode)new QRCode(q,{text:url,wid
 }
 function menu(){
 let r=current();return `<div class=head><div><h1>Menu Management</h1><small class=mut>Customer-facing menu</small></div><button class="btn primary" onclick=addMenu()>+ ADD ITEM</button></div><div class=card>
-${r.menu.map(m=>`<div class=line><span><b>${esc(m.name)}</b><small style="display:block;color:#718096">${esc(m.cat)} • ${money(m.price)} • ${esc(m.desc)}</small></span><span><span class="status ${m.active?'ready':'served'}">${m.active?'LIVE':'OFF'}</span> <button class="btn soft" onclick=toggleMenu(${m.id})>Toggle</button> <button class="btn outline" onclick=editMenu(${m.id})>Edit</button></span></div>`).join("")}</div>`;
+${r.menu.map(m=>`<div class=line><span><b>${esc(m.name)}</b><small style="display:block;color:#718096">${esc(m.cat)} • ${money(m.price)} • ${esc(m.desc)}</small></span><span><span class="status ${m.active?'ready':'served'}">${m.active?'LIVE':'OFF'}</span> <button class="btn soft" onclick="toggleMenu('${m.id}')>Toggle</button> <button class="btn outline" onclick="editMenu('${m.id}')>Edit</button></span></div>`).join("")}</div>`;
 }
 function addMenu(id){let r=current(),m=id?r.menu.find(x=>x.id===id):{name:"",cat:"Starters",desc:"",price:0,active:true};open(`<button class=close onclick=closeModal()>×</button><h2>${id?"Edit":"Add"} Menu Item</h2><input class=field id=mn value="${esc(m.name)}" placeholder="Item name"><input class=field id=mc value="${esc(m.cat)}" placeholder="Category"><input class=field id=mp type=number value="${m.price}" placeholder="Price"><textarea class=field id=md placeholder="Description">${esc(m.desc)}</textarea><button class="btn primary" onclick=saveMenu(${id||0})>SAVE ITEM</button>`)}
 function editMenu(id){addMenu(id)}
