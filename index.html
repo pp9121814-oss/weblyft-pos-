@@ -2,102 +2,245 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#06294c">
+<meta name="mobile-web-app-capable" content="yes">
 <title>WEBLYFT Restaurant OS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-:root{--b:#1769d1;--c:#16a6d8;--ink:#172536;--mut:#718096;--bg:#f4f7fa;--line:#dbe3ec;--w:#fff;--g:#198754;--a:#d58a00;--r:#c64242}
-*{box-sizing:border-box}body{margin:0;font:14px Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-button,input,select{font:inherit}button{cursor:pointer;border:0}.hide{display:none!important}
-header{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:20}
-.brand{display:flex;align-items:center;gap:10px}.brand img{width:40px;height:40px;object-fit:contain}.brand b{font-size:21px;color:var(--b)}.brand small{display:block;color:var(--mut);font-size:9px;letter-spacing:1px}
-.headBtns{display:flex;gap:7px;align-items:center}.btn{padding:10px 13px;border-radius:9px;font-weight:800}.primary{background:var(--b);color:#fff}.secondary{background:#eaf4ff;color:#125398}.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}.danger{background:#ffebeb;color:#9b2b2b}
-.layout{display:grid;grid-template-columns:215px 1fr;min-height:calc(100vh - 64px)}aside{background:#fff;border-right:1px solid var(--line);padding:10px;position:sticky;top:64px;height:calc(100vh - 64px)}
-aside button{width:100%;text-align:left;background:transparent;padding:11px;border-radius:9px;color:#4c5b6e;font-weight:700;margin:2px 0}aside button.active,aside button:hover{background:#eaf4ff;color:var(--b)}
-main{padding:20px;max-width:1400px;width:100%;margin:auto}.head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:16px}.eyebrow{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}h1,h2,h3{margin:0 0 8px}.sub{color:var(--mut)}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat,.card{background:#fff;border:1px solid var(--line);border-radius:13px}.stat{padding:14px}.stat small{color:var(--mut)}.stat strong{display:block;font-size:24px;margin-top:4px}.card{padding:15px;margin-top:12px}.two{display:grid;grid-template-columns:1.35fr .9fr;gap:12px}
-.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.quick button{background:#fafbfd;border:1px solid var(--line);padding:14px;border-radius:10px;text-align:left}.quick b{display:block;font-size:20px;margin-bottom:4px}
-.order{padding:11px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.badge{padding:5px 8px;border-radius:18px;font-size:10px;font-weight:800}.new{background:#ffeaea;color:#9d2d2d}.prep{background:#fff1d1;color:#815700}.ready{background:#e6f2ff;color:#1758a0}.done{background:#e7f7ed;color:#1f7c4d}
-.pos{display:grid;grid-template-columns:1.55fr .9fr;gap:12px}.toolbar{display:flex;gap:8px}.toolbar input,.toolbar select,input,select{width:100%;padding:11px;border:1px solid #cbd6e1;border-radius:9px;background:#fff;outline:none}.toolbar select{max-width:160px}.cats{display:flex;gap:7px;overflow:auto;padding:9px 0}.cats button{white-space:nowrap;background:#edf1f6;color:#556377;padding:8px 12px;border-radius:18px;font-weight:700}.cats button.active{background:var(--b);color:#fff}.foods{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.food{background:#fff;border:1px solid var(--line);border-radius:10px;text-align:left;padding:13px}.food b{display:block}.food small{display:block;color:var(--mut);margin:4px 0}
-.cartline{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}.qty{display:flex;gap:5px;margin-top:5px}.qty button{width:26px;height:26px;background:#edf1f6;border-radius:7px}.totals{display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:10px}.totals strong{border-top:1px solid var(--line);padding-top:8px}
-.tablegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}.tbl{background:#fff;border:2px solid var(--line);border-radius:11px;padding:17px 7px}.tbl strong{display:block;font-size:20px}.tbl small{display:block;color:var(--mut)}.free{border-color:#b6ddc7}.occupied{border-color:#efbe78;background:#fffaf0}.reserved{border-color:#aabbea;background:#f3f6ff}
-.qrgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.qrbox{text-align:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px}.qrbox img{max-width:230px;width:100%;margin:auto;display:block}.url{word-break:break-all;font-size:11px;color:var(--mut);background:#f4f7fa;padding:9px;border-radius:8px;margin:10px 0}
-.table{width:100%;border-collapse:collapse}.table td,.table th{padding:11px;border-bottom:1px solid var(--line);text-align:left}.table th{font-size:10px;color:var(--mut);text-transform:uppercase}
-.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.wide{grid-column:1/-1}
-.auth{min-height:100vh;display:grid;place-items:center;background:#f4f8fc;padding:18px}.authbox{background:#fff;border:1px solid var(--line);border-radius:18px;width:min(460px,100%);padding:26px}.authbox img{display:block;width:88px;height:88px;object-fit:contain;margin:0 auto 8px}.authbox h1,.authbox h2{text-align:center;color:var(--b)}.authbox p{text-align:center;color:var(--mut)}.choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}.choice button{padding:18px;background:#eaf4ff;color:#14589e;border-radius:11px}.modal{position:fixed;inset:0;background:#0007;display:grid;place-items:center;padding:18px;z-index:100}.modalbox{width:min(470px,100%);background:#fff;border-radius:15px;padding:20px}
-.mobile{display:none}
-@media(max-width:980px){.cards{grid-template-columns:repeat(2,1fr)}.two,.pos,.qrgrid{grid-template-columns:1fr}.foods{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:700px){.layout{grid-template-columns:1fr}aside{display:none}.mobile{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);justify-content:space-around;padding:6px;z-index:40}.mobile button{background:none;color:var(--mut);font-size:10px;font-weight:700}.mobile button.active{color:var(--b)}main{padding:16px 13px 75px}.tablegrid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}.foods{grid-template-columns:1fr 1fr}.cards{grid-template-columns:1fr 1fr}.choice{grid-template-columns:1fr}}
+:root{--nav:#06294c;--nav2:#041d35;--blue:#0872ee;--cyan:#18b9df;--green:#18a467;--red:#df4d57;--orange:#e99b19;--bg:#f4f7fb;--card:#fff;--line:#dfe7ef;--text:#10243e;--mut:#718096}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}button:active{transform:scale(.985)}
+.hidden{display:none!important}.mut{color:var(--mut)}.small{font-size:11px}.btn{border:0;border-radius:9px;padding:10px 14px;font-weight:800}.primary{background:var(--blue);color:#fff}.success{background:var(--green);color:#fff}.danger{background:var(--red);color:#fff}.soft{background:#eaf1f8;color:#173b5d}.outline{background:#fff;border:1px solid var(--line);color:#173b5d}
+.auth{min-height:100vh;display:grid;place-items:center;padding:18px;background:radial-gradient(circle at top,#e0efff,#f7f9fb 55%)}.authbox{width:min(440px,94vw);background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:0 25px 90px #06294c1a}.brand{font-weight:950;color:var(--nav);font-size:25px;letter-spacing:.5px}.brand span{color:var(--blue)}
+.field{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fff;margin:5px 0;outline:none}.field:focus{border-color:var(--blue);box-shadow:0 0 0 3px #0872ee15}
+.top{height:62px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:30}.topright{display:flex;align-items:center;gap:8px}.layout{display:grid;grid-template-columns:225px 1fr}.side{background:linear-gradient(180deg,var(--nav),var(--nav2));color:#fff;min-height:calc(100vh - 62px);padding:15px;position:sticky;top:62px}.side small{color:#abc1d8}.rid{padding:11px;background:#ffffff12;border-radius:9px;margin:15px 0;font-size:11px}.nav button{display:block;width:100%;text-align:left;background:transparent;border:0;color:#dbe7f2;border-radius:8px;padding:10px;margin:2px 0}.nav button:hover,.nav button.active{background:var(--blue);color:#fff}
+.main{padding:20px}.head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}.head h1{margin:0;font-size:24px}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:0 4px 18px #06294c09}.metric small{color:var(--mut);font-size:11px}.metric strong{display:block;font-size:24px;margin:7px 0}.sub{background:linear-gradient(135deg,#0872ee,#0756c9);color:#fff}.sub small{color:#dceaff}.grid3{display:grid;grid-template-columns:1.3fr 1fr .75fr;gap:10px;margin-top:10px}.quick{display:grid;grid-template-columns:1fr 1fr;gap:7px}.quick button{padding:13px;background:#fff;border:1px solid var(--line);border-radius:8px;font-weight:800}.bars{height:175px;display:flex;align-items:end;gap:9px}.bar{flex:1;background:linear-gradient(#0872ee,#43b8ed);border-radius:5px 5px 0 0}.bar span{display:block;text-align:center;transform:translateY(16px);font-size:9px;color:var(--mut)}
+.table{width:100%;border-collapse:collapse;font-size:11px}.table th,.table td{padding:9px;border-bottom:1px solid #edf1f5;text-align:left}.status{font-size:9px;font-weight:900;padding:5px 8px;border-radius:12px}.new{background:#eaf3ff;color:#0868d7}.prep{background:#fff1d4;color:#9a6800}.ready{background:#e5f8ef;color:#16804c}.served{background:#eef1f5;color:#687688}
+.pos{display:grid;grid-template-columns:1fr 340px;gap:10px}.search{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px}.tabs{display:flex;gap:6px;overflow:auto;margin:8px 0}.tabs button{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:15px;padding:8px 12px;font-size:11px}.tabs .on{background:var(--blue);color:#fff}.foodgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.food{background:#fff;border:1px solid var(--line);border-radius:9px;padding:13px;text-align:left}.food b{display:block}.food small{display:block;color:var(--mut);margin:5px 0}
+.tgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.tile{background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px 7px;text-align:center}.tile b{display:block;font-size:16px}.tile small{color:var(--mut)}
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.col{background:#e8eef5;padding:10px;border-radius:10px}.order{background:#fff;border:1px solid var(--line);border-radius:9px;padding:11px;margin:7px 0}.line{display:flex;justify-content:space-between;gap:7px;padding:8px 0;border-bottom:1px solid #edf1f5;font-size:11px}.eta{font-size:27px;text-align:center;font-weight:900;color:var(--blue);padding:8px}
+.modal{position:fixed;inset:0;background:#00172d99;display:grid;place-items:center;padding:14px;z-index:100}.box{background:#fff;border-radius:14px;width:min(540px,95vw);max-height:92vh;overflow:auto;padding:20px}.close{float:right;border:0;background:#edf2f7;border-radius:50%;width:29px;height:29px}
+.customer{max-width:700px;margin:auto}.chead{height:62px;background:var(--nav);color:#fff;padding:12px 15px;position:sticky;top:0;z-index:20}.wrap{padding:13px 13px 90px}.hero{background:linear-gradient(135deg,#0872ee,#16b8df);color:#fff;padding:20px;border-radius:13px;margin-bottom:9px}.hero h1{margin:5px 0;font-size:23px}.citem{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin:7px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}.cartbar{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:min(670px,94vw);background:var(--blue);color:#fff;border-radius:10px;padding:12px;z-index:30}.timer{font-size:46px;text-align:center;font-weight:950;color:var(--blue)}.timeline{display:flex;justify-content:space-between;margin:23px 0}.node{text-align:center;font-size:10px;color:var(--mut)}.node.on{color:var(--green);font-weight:900}
+.notice{padding:11px;border-radius:9px;background:#fff8df;border:1px solid #f0dc98;color:#795d09;font-size:11px;margin:10px 0}.successBox{padding:11px;border-radius:9px;background:#e9f9f1;color:#137648;font-size:11px}.qrbox{display:grid;place-items:center;padding:15px}
+@media(max-width:1050px){.cards{grid-template-columns:repeat(3,1fr)}.grid3{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.top{height:58px;padding:0 10px}.layout{display:block}.side{display:none}.main{padding:10px}.cards{grid-template-columns:1fr 1fr;gap:7px}.card{padding:12px}.grid3,.pos,.kanban{grid-template-columns:1fr}.foodgrid{grid-template-columns:1fr 1fr}.tgrid{grid-template-columns:1fr 1fr}.head h1{font-size:20px}.metric strong{font-size:20px}.topright .btn{padding:8px}.customer .wrap{padding:10px 10px 90px}.hero h1{font-size:21px}}
+@media(max-width:380px){.cards{grid-template-columns:1fr}.foodgrid{grid-template-columns:1fr}}
 </style>
 </head>
-<body><div id="root"></div><div id="modal"></div>
-
+<body>
+<div id="app"></div><div id="modal"></div>
 <script>
-const LOGO='weblyft_logo.png';
-const db=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
-const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-let account=db('w_owner');
-let restaurant=db('w_rest')||{id:'WL-482731',name:'Demo Restaurant',tax:5,range:100,subscription:null};
-let tables=db('w_tables')||[];
-let menu=db('w_menu')||[
- {id:1,n:'Paneer Tikka',p:180,c:'Starters',active:true},
- {id:2,n:'Veg Burger',p:140,c:'Burgers',active:true},
- {id:3,n:'French Fries',p:110,c:'Sides',active:true},
- {id:4,n:'Masala Maggi',p:90,c:'Quick Bites',active:true},
- {id:5,n:'Cold Coffee',p:120,c:'Drinks',active:true},
- {id:6,n:'Fresh Lime',p:80,c:'Drinks',active:true},
- {id:7,n:'Margherita Pizza',p:220,c:'Pizza',active:true},
- {id:8,n:'Chocolate Shake',p:150,c:'Shakes',active:true}
-];
-let orders=db('w_orders')||[],bills=db('w_bills')||[],stock=db('w_stock')||[
- {n:'Paneer',q:4.2,u:'kg',min:2},{n:'Coffee',q:1.1,u:'kg',min:2},{n:'Buns',q:12,u:'pcs',min:10},{n:'Cheese',q:8,u:'pcs',min:5}
-],customers=db('w_customers')||[],expenses=db('w_expenses')||[];
-if(!tables.length){tables=Array.from({length:12},(_,i)=>({n:i+1,status:'free',token:token()}));persist()}
+/* WEBLYFT FINAL HTML APP
+   - Phone-first responsive UI
+   - Owner/POS/Kitchen/Tables/QR/Menu/Reports/Settings/Subscription
+   - Customer QR menu + cart + tax + range check
+   - Browser-local data store for standalone HTML operation
+   - QR generation uses QRCode.js CDN. Internet is required for QR generation in this single-file build.
+*/
+const KEY="WEBLYFT_FINAL_V1";
+let db=JSON.parse(localStorage.getItem(KEY)||"null")||{restaurants:[],orders:[],session:null};
+let page="dashboard",cart=[],pcat="All",pq="";
+const $=id=>document.getElementById(id);
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const money=n=>"₹"+Math.round(n||0).toLocaleString("en-IN");
+const rid=()=>`WL-${Math.floor(100000+Math.random()*900000)}`;
+const token=()=>crypto.randomUUID?crypto.randomUUID():Math.random().toString(36)+Date.now().toString(36);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 
-let logged=localStorage.getItem('w_logged')==='1',page='dashboard',cart=[],search='',category='All',selectedTable=1;
-const money=n=>'₹'+Number(n||0).toFixed(0);
-function token(){return (crypto.randomUUID?crypto.randomUUID():'T'+Date.now()+Math.random().toString(36).slice(2))}
-function persist(){put('w_owner',account);put('w_rest',restaurant);put('w_tables',tables);put('w_menu',menu);put('w_orders',orders);put('w_bills',bills);put('w_stock',stock);put('w_customers',customers);put('w_expenses',expenses)}
-function nav(){return [['dashboard','⌂','Home'],['pos','▣','POS'],['orders','◉','Orders'],['kitchen','♨','Kitchen'],['tables','▦','Tables'],['menu','☷','Menu'],['qr','▣','QR Codes'],['inventory','□','Inventory'],['customers','♙','Customers'],['reports','◔','Reports'],['settings','⚙','Settings']]}
-function login(){document.getElementById('root').innerHTML=`<div class="auth"><div class="authbox"><img src="${LOGO}"><h1>WEBLYFT</h1><p>Restaurant OS</p><input id="li" placeholder="Restaurant ID / Email"><input id="lp" type="password" placeholder="Password"><button class="btn primary" style="width:100%;margin-top:8px" onclick="doLogin()">LOGIN</button><button class="btn secondary" style="width:100%;margin-top:8px" onclick="registerScreen()">CREATE RESTAURANT ACCOUNT</button><p>For testing: any login values work after an account exists.</p></div></div>`}
-function registerScreen(){document.getElementById('root').innerHTML=`<div class="auth"><div class="authbox"><img src="${LOGO}"><h2>Create Restaurant Account</h2><p>Registration comes before subscription.</p><input id="rn" placeholder="Restaurant name"><input id="ro" placeholder="Owner name"><input id="re" placeholder="Email"><input id="rp" placeholder="Phone"><input id="rt" type="number" value="12" placeholder="Tables"><button class="btn primary" style="width:100%;margin-top:8px" onclick="register()">REGISTER</button><button class="btn ghost" style="width:100%;margin-top:8px" onclick="login()">Back</button></div></div>`}
-function register(){if(!rn.value||!ro.value||!re.value)return alert('Fill required fields');account={id:'WL-'+Math.floor(100000+Math.random()*899999),name:rn.value,owner:ro.value,email:re.value,phone:rp.value};restaurant={id:account.id,name:account.name,tax:5,range:100,subscription:null};tables=Array.from({length:Math.max(1,+rt.value||12)},(_,i)=>({n:i+1,status:'free',token:token()}));persist();logged=true;localStorage.setItem('w_logged','1');page='dashboard';render();setTimeout(subscription,400)}
-function doLogin(){if(!account)return alert('Create a restaurant account first.');logged=true;localStorage.setItem('w_logged','1');render()}
-function logout(){logged=false;localStorage.setItem('w_logged','0');login()}
-function subscription(){if(restaurant.subscription?.active)return;openModal(`<h2>WEBLYFT Subscription</h2><p class="sub">Your restaurant account is created. Start your 7-day trial, then continue at <b>₹3,499/year</b>.</p><div class="card"><h3>₹3,499 / Year</h3><p class="sub">One plan • full Restaurant OS</p></div><button class="btn primary" style="width:100%" onclick="trial()">START 7-DAY TRIAL</button><button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal()">LATER</button>`)}
-function trial(){restaurant.subscription={active:true,trial:true,started:Date.now(),expiry:Date.now()+7*864e5};persist();closeModal();render()}
-function activate(){restaurant.subscription={active:true,trial:false,started:Date.now(),expiry:Date.now()+365*864e5};persist();closeModal();render()}
-function shell(){return `<header><div class="brand"><img src="${LOGO}"><div><b>WEBLYFT</b><small>RESTAURANT OS</small></div></div><div class="headBtns"><span class="pill">${account?.id||''}</span><button class="btn ghost" onclick="subscription()">Subscription</button><button class="btn ghost" onclick="logout()">Logout</button></div></header><div class="layout"><aside>${nav().map(x=>`<button class="${page===x[0]?'active':''}" onclick="go('${x[0]}')">${x[1]} ${x[2]}</button>`).join('')}</aside><main id="content"></main></div><nav class="mobile">${nav().slice(0,6).map(x=>`<button class="${page===x[0]?'active':''}" onclick="go('${x[0]}')">${x[1]}<br>${x[2]}</button>`).join('')}</nav>`}
-function go(p){page=p;render()}
-const views={
-dashboard:()=>{let sales=bills.reduce((a,b)=>a+b.total,0),pending=orders.filter(o=>o.status!=='Completed').length,occ=tables.filter(t=>t.status==='occupied').length,low=stock.filter(s=>s.q<=s.min).length;return `<div class="head"><div><div class="eyebrow">Restaurant dashboard</div><h1>${restaurant.name}</h1><p class="sub">Today's operations</p></div><button class="btn primary" onclick="go('pos')">+ New Bill</button></div><div class="cards"><div class="stat"><small>Today's Sales</small><strong>${money(sales)}</strong></div><div class="stat"><small>Orders</small><strong>${orders.length}</strong></div><div class="stat"><small>Tables</small><strong>${occ}/${tables.length}</strong></div><div class="stat"><small>Low Stock</small><strong>${low}</strong></div></div><div class="two"><section class="card"><div class="head"><h2>Live Orders</h2><button class="btn ghost" onclick="go('orders')">View all</button></div>${orders.slice().reverse().slice(0,5).map(orderRow).join('')||'<p class="sub">No orders yet.</p>'}</section><section class="card"><h2>Quick Access</h2><div class="quick">${[['pos','🧾','New Bill'],['kitchen','👨‍🍳','Kitchen'],['tables','🪑','Tables'],['qr','🔳','QR Codes'],['menu','🍽️','Menu'],['reports','📊','Reports']].map(x=>`<button onclick="go('${x[0]}')"><b>${x[1]}</b>${x[2]}</button>`).join('')}</div></section></div>`},
-pos:()=>{let cats=['All',...new Set(menu.map(m=>m.c))],list=menu.filter(m=>m.active&&(!search||m.n.toLowerCase().includes(search.toLowerCase()))&&(category==='All'||m.c===category)),sub=cart.reduce((a,x)=>a+x.p*x.q,0),tax=sub*restaurant.tax/100;return `<div class="head"><div><div class="eyebrow">Point of sale</div><h1>New Order</h1></div><select style="max-width:160px" onchange="selectedTable=+this.value;render()">${tables.map(t=>`<option value="${t.n}" ${t.n===selectedTable?'selected':''}>Table ${t.n}</option>`).join('')}</select></div><div class="pos"><section class="card"><div class="toolbar"><input placeholder="Search menu..." value="${search}" oninput="search=this.value;render()"></div><div class="cats">${cats.map(c=>`<button class="${category===c?'active':''}" onclick="category='${c}';render()">${c}</button>`).join('')}</div><div class="foods">${list.map(m=>`<button class="food" onclick="addCart(${m.id})"><b>${m.n}</b><small>${m.c}</small><strong>${money(m.p)}</strong></button>`).join('')}</div></section><section class="card"><h2>Table ${selectedTable}</h2>${cart.map(x=>`<div class="cartline"><div><b>${x.n}</b><div class="qty"><button onclick="chg(${x.id},-1)">−</button><b>${x.q}</b><button onclick="chg(${x.id},1)">+</button></div></div><strong>${money(x.p*x.q)}</strong></div>`).join('')||'<p class="sub">Cart is empty.</p>'}<div class="totals"><span>Subtotal</span><b>${money(sub)}</b><span>Tax ${restaurant.tax}%</span><b>${money(tax)}</b><strong>Total</strong><strong>${money(sub+tax)}</strong></div><button class="btn primary" style="width:100%" onclick="sendKOT()">SEND TO KITCHEN</button></section></div>`},
-orders:()=>`<div class="head"><div><div class="eyebrow">Order center</div><h1>Live Orders</h1></div></div><section class="card">${orders.slice().reverse().map(o=>`${orderRow(o)}<div class="actions">${o.status==='New'?`<button class="btn primary" onclick="accept(${o.id})">ACCEPT</button>`:''}${o.status==='Preparing'?`<button class="btn secondary" onclick="ready(${o.id})">MARK READY</button>`:''}${o.status==='Ready'?`<button class="btn primary" onclick="complete(${o.id})">COMPLETE</button>`:''}${o.status==='Completed'?`<button class="btn ghost" onclick="bill(${o.id})">CREATE BILL</button>`:''}</div>`).join('')||'<p class="sub">No orders.</p>'}</section>`,
-kitchen:()=>`<div class="head"><div><div class="eyebrow">Kitchen</div><h1>KOT / Kitchen Display</h1><p class="sub">Chef accepts orders and sets preparation time.</p></div></div><div class="cards" style="grid-template-columns:repeat(3,1fr)">${orders.filter(o=>o.status!=='Completed').slice().reverse().map(o=>`<section class="card"><div class="head"><div><h2>#${o.id}</h2><small>Table ${o.table}</small></div><span class="badge ${o.status==='New'?'new':o.status==='Preparing'?'prep':'ready'}">${o.status}</span></div>${o.items.map(i=>`<div class="listrow">${i.n} × ${i.q}</div>`).join('')}<p><b>${money(o.total)}</b></p>${o.status==='New'?`<button class="btn primary" style="width:100%" onclick="accept(${o.id})">ACCEPT & SET TIME</button>`:o.status==='Preparing'?`<p class="sub">ETA: ${o.eta} min</p><button class="btn secondary" style="width:100%" onclick="ready(${o.id})">ORDER READY</button>`:`<button class="btn primary" style="width:100%" onclick="complete(${o.id})">SERVED</button>`}</section>`).join('')||'<section class="card"><p class="sub">Kitchen is clear.</p></section>'}</div>`,
-tables:()=>`<div class="head"><div><div class="eyebrow">Table management</div><h1>Tables</h1><p class="sub">Each table has its own secure token for QR ordering.</p></div><button class="btn primary" onclick="addTable()">+ Add Table</button></div><div class="tablegrid">${tables.map(t=>`<button class="tbl ${t.status}" onclick="toggleTable(${t.n})"><strong>${String(t.n).padStart(2,'0')}</strong><small>TABLE</small><div>${t.status}</div></button>`).join('')}</div>`,
-menu:()=>`<div class="head"><div><div class="eyebrow">Menu</div><h1>Menu Manager</h1></div><button class="btn primary" onclick="menuModal()">+ Add Item</button></div><section class="card"><table class="table"><tr><th>Item</th><th>Category</th><th>Price</th><th>Status</th><th></th></tr>${menu.map((m,i)=>`<tr><td><b>${m.n}</b></td><td>${m.c}</td><td>${money(m.p)}</td><td><span class="badge ${m.active?'done':'new'}">${m.active?'LIVE':'OFF'}</span></td><td><button class="btn ghost" onclick="menu[${i}].active=!menu[${i}].active;persist();render()">Toggle</button></td></tr>`).join('')}</table></section>`,
-qr:()=>{let t=tables.find(x=>x.n===selectedTable)||tables[0],url=`https://your-domain.com/customer.html?restaurant=${encodeURIComponent(restaurant.id)}&table=${t.n}&token=${encodeURIComponent(t.token)}`;return `<div class="head"><div><div class="eyebrow">Contactless ordering</div><h1>QR Manager</h1><p class="sub">Unique QR per restaurant table.</p></div></div><div class="qrgrid"><section class="card"><h2>Table ${t.n}</h2><select onchange="selectedTable=+this.value;render()">${tables.map(x=>`<option value="${x.n}" ${x.n===t.n?'selected':''}>Table ${x.n}</option>`).join('')}</select><div class="url">${url}</div><button class="btn secondary" onclick="navigator.clipboard?.writeText('${url}');alert('Link copied')">COPY LINK</button><p class="sub">Publish your customer website at the URL base above to make scans open the live menu.</p></section><div class="qrbox"><img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(url)}"><h3>TABLE ${t.n}</h3></div></div>`},
-inventory:()=>`<div class="head"><div><div class="eyebrow">Stock</div><h1>Inventory</h1></div><button class="btn primary" onclick="stockModal()">+ Add Item</button></div><section class="card"><table class="table"><tr><th>Ingredient</th><th>Stock</th><th>Minimum</th><th>Status</th></tr>${stock.map(s=>`<tr><td>${s.n}</td><td>${s.q} ${s.u}</td><td>${s.min}</td><td><span class="badge ${s.q<=s.min?'new':'done'}">${s.q<=s.min?'LOW':'OK'}</span></td></tr>`).join('')}</table></section>`,
-customers:()=>`<div class="head"><div><div class="eyebrow">CRM</div><h1>Customers</h1></div><button class="btn primary" onclick="custModal()">+ Add Customer</button></div><section class="card">${customers.map(c=>`<div class="order"><div><b>${c.n}</b><div class="sub">${c.p||''}</div></div><b>${money(c.s||0)}</b></div>`).join('')||'<p class="sub">No customers yet.</p>'}</section>`,
-reports:()=>{let s=bills.reduce((a,b)=>a+b.total,0),e=expenses.reduce((a,b)=>a+b.a,0);return `<div class="head"><div><div class="eyebrow">Reports</div><h1>Sales & Reports</h1></div></div><div class="cards"><div class="stat"><small>Sales</small><strong>${money(s)}</strong></div><div class="stat"><small>Expenses</small><strong>${money(e)}</strong></div><div class="stat"><small>Net</small><strong>${money(s-e)}</strong></div><div class="stat"><small>Bills</small><strong>${bills.length}</strong></div></div><section class="card"><h2>Payments</h2>${['Cash','UPI','Card'].map(p=>`<div class="order"><span>${p}</span><b>${money(bills.filter(b=>b.payment===p).reduce((a,b)=>a+b.total,0))}</b></div>`).join('')}</section>`},
-settings:()=>`<div class="head"><div><div class="eyebrow">Settings</div><h1>Restaurant Settings</h1></div></div><section class="card"><div class="formgrid"><div><label>Restaurant name</label><input id="sname" value="${restaurant.name}"></div><div><label>Tax %</label><input id="stax" type="number" value="${restaurant.tax}"></div><div><label>Order range (meters)</label><input id="srange" type="number" value="${restaurant.range}"></div><div><label>Restaurant ID</label><input value="${restaurant.id}" disabled></div><div class="wide"><button class="btn primary" onclick="restaurant.name=sname.value;restaurant.tax=+stax.value||0;restaurant.range=+srange.value||100;persist();render()">SAVE</button></div></div></section><section class="card"><h2>Subscription</h2><p class="sub">${restaurant.subscription?.active?'ACTIVE':'NOT ACTIVE'}${restaurant.subscription?.trial?' • Trial':''}</p><button class="btn primary" onclick="activate()">₹3,499 / Year — Activate</button></section>`
+function auth(){
+$("app").innerHTML=`<div class=auth><div class=authbox>
+<div class=brand style="text-align:center">WEB<span>LYFT</span></div>
+<h2 style="text-align:center;margin-bottom:4px">Restaurant OS</h2>
+<p class=mut style="text-align:center">Owner • POS • Kitchen • QR • Billing</p>
+<input class=field id=li placeholder="Email / Restaurant ID">
+<input class=field id=lp type=password placeholder="Password">
+<button class="btn primary" style="width:100%;margin-top:6px" onclick=login()>LOGIN</button>
+<button class="btn outline" style="width:100%;margin-top:7px" onclick=registerView()>CREATE RESTAURANT</button>
+</div></div>`;
+}
+function registerView(){
+$("app").innerHTML=`<div class=auth><div class=authbox>
+<div class=brand style="text-align:center">WEB<span>LYFT</span></div><h2 style="text-align:center">Create Restaurant</h2>
+<input class=field id=rn placeholder="Restaurant name">
+<input class=field id=ro placeholder="Owner name">
+<input class=field id=re type=email placeholder="Email">
+<input class=field id=rp placeholder="Mobile">
+<input class=field id=rpass type=password placeholder="Password">
+<input class=field id=nt type=number value=12 placeholder="Number of tables">
+<button class="btn primary" style="width:100%;margin-top:5px" onclick=register()>CREATE ACCOUNT</button>
+<button class="btn outline" style="width:100%;margin-top:7px" onclick=auth()>BACK</button>
+</div></div>`;
+}
+function register(){
+if(!rn.value||!ro.value||!re.value||!rpass.value)return alert("Fill all required fields.");
+if(db.restaurants.some(r=>r.email.toLowerCase()===re.value.toLowerCase()))return alert("Email already registered.");
+let r={id:rid(),name:rn.value,owner:ro.value,email:re.value,phone:rp.value,password:rpass.value,
+tax:5,range:100,lat:null,lng:null,subscription:{active:false,until:null},
+tables:[],menu:[
+{id:1,name:"Paneer Tikka",cat:"Starters",desc:"Grilled paneer with spices",price:180,active:true},
+{id:2,name:"Veg Momos",cat:"Starters",desc:"Steamed vegetable dumplings",price:120,active:true},
+{id:3,name:"Cheese Burger",cat:"Burgers",desc:"Crispy patty with cheese",price:150,active:true},
+{id:4,name:"Cold Coffee",cat:"Drinks",desc:"Chilled creamy coffee",price:120,active:true},
+{id:5,name:"French Fries",cat:"Sides",desc:"Golden crisp fries",price:110,active:true},
+{id:6,name:"Veg Pizza",cat:"Pizza",desc:"Classic vegetable pizza",price:220,active:true},
+{id:7,name:"Chocolate Shake",cat:"Desserts",desc:"Rich chocolate shake",price:150,active:true}
+]};
+for(let i=1;i<=Math.max(1,Math.min(200,+nt.value||12));i++)r.tables.push({no:i,token:token(),status:"Available"});
+db.restaurants.push(r);save();alert("Restaurant created!\nRestaurant ID: "+r.id);auth();
+}
+function login(){
+let r=db.restaurants.find(x=>x.email.toLowerCase()===li.value.toLowerCase()||x.id===li.value);
+if(!r||r.password!==lp.value)return alert("Invalid login details.");
+db.session=r.id;save();owner();
+}
+function current(){return db.restaurants.find(r=>r.id===db.session)}
+function logout(){db.session=null;save();auth()}
+const nav=[["dashboard","▦","Dashboard"],["pos","▣","POS / Billing"],["orders","◉","Orders"],["kitchen","♨","Kitchen / KOT"],["tables","▦","Tables & QR"],["menu","☷","Menu"],["inventory","◒","Inventory"],["reports","◔","Reports"],["customers","♙","Customers"],["settings","⚙","Settings"],["subscription","◆","Subscription"]];
+function shell(r){
+return `<div class=top><div class=brand>WEB<span>LYFT</span> <small class=mut>Restaurant OS</small></div>
+<div class=topright><b class=small>${esc(r.name)}</b><button class="btn soft" onclick=logout()>Logout</button></div></div>
+<div class=layout><aside class=side><b style="font-size:18px">WEBLYFT</b><small style="display:block">Restaurant Operating System</small>
+<div class=rid><b>${esc(r.name)}</b><br><small>Restaurant ID • ${r.id}</small></div>
+<div class=nav>${nav.map(n=>`<button class="${page===n[0]?"active":""}" onclick="go('${n[0]}')">${n[1]} &nbsp; ${n[2]}</button>`).join("")}</div>
+</aside><main class=main id=main></main></div>`;
+}
+function owner(){let r=current();$("app").innerHTML=shell(r);render()}
+function go(p){page=p;owner()}
+function render(){let f={dashboard,pos,orders,kitchen,tables,menu,inventory,reports,customers,settings,subscription}[page];let out=f();if(out instanceof Promise)out.then(x=>main.innerHTML=x);else main.innerHTML=out}
+function getOrders(){return db.orders.filter(o=>o.rid===current().id).sort((a,b)=>b.id-a.id)}
+function dashboard(){
+let r=current(),o=getOrders(),sales=o.reduce((a,x)=>a+x.total,0),pending=o.filter(x=>!["Ready","Served"].includes(x.status)).length,occ=r.tables.filter(t=>t.status==="Occupied").length;
+return `<div class=head><div><h1>Dashboard</h1><small class=mut>Live restaurant overview</small></div><button class="btn primary" onclick=go('pos')>+ NEW ORDER</button></div>
+<div class=cards><div class="card metric"><small>Today's Sales</small><strong>${money(sales)}</strong><span style="color:var(--green)">LIVE</span></div>
+<div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Pending Orders</small><strong>${pending}</strong></div>
+<div class="card metric"><small>Occupied Tables</small><strong>${occ} / ${r.tables.length}</strong></div>
+<div class="card metric sub"><small>WEBLYFT SUBSCRIPTION</small><strong>₹3,499 / YEAR</strong><span>365 days</span></div></div>
+<div class=grid3><section class=card><h3>LIVE ORDERS</h3>${o.slice(0,7).map(x=>`<div class=line><b>#${x.id}</b><span>Table ${x.table}</span><span>${money(x.total)}</span><span class="status ${x.status==="New"?"new":x.status==="Preparing"?"prep":x.status==="Ready"?"ready":"served"}">${x.status}</span></div>`).join("")||"<p class=mut>No orders yet.</p>"}</section>
+<section class=card><h3>SALES OVERVIEW</h3><div class=bars>${[30,48,41,63,53,75,88].map((h,i)=>`<div class=bar style="height:${h}%"><span>${"MTWTFSS"[i]}</span></div>`).join("")}</div></section>
+<section class=card><h3>QUICK ACTIONS</h3><div class=quick><button onclick=go('pos')>New Bill</button><button onclick=go('kitchen')>Kitchen</button><button onclick=go('tables')>Tables & QR</button><button onclick=go('menu')>Menu</button></div></section></div>`;
+}
+function pos(){
+let r=current(),cats=["All",...new Set(r.menu.map(x=>x.cat))],items=r.menu.filter(x=>x.active&&(pcat==="All"||x.cat===pcat)&&x.name.toLowerCase().includes(pq.toLowerCase())),sub=cart.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;
+return `<div class=head><div><h1>POS / Billing</h1><small class=mut>Manual order → KOT</small></div></div><div class=pos>
+<section class=card><input class=search value="${esc(pq)}" placeholder="Search menu..." oninput="pq=this.value;render()"><div class=tabs>${cats.map(c=>`<button class="${pcat===c?'on':''}" onclick="pcat='${esc(c)}';render()">${esc(c)}</button>`).join("")}</div>
+<div class=foodgrid>${items.map(m=>`<button class=food onclick="addCart(${m.id})"><b>${esc(m.name)}</b><small>${esc(m.cat)}</small><strong>${money(m.price)}</strong></button>`).join("")}</div></section>
+<section class=card><div class=line><b>TABLE</b><select id=pt>${r.tables.map(t=>`<option value="${t.no}">Table ${t.no}</option>`).join("")}</select></div>
+${cart.map(x=>`<div class=line><span>${esc(x.name)} × ${x.qty}</span><b>${money(x.price*x.qty)}</b></div>`).join("")||"<p class=mut>Cart empty.</p>"}
+<div class=line><span>Subtotal</span><b>${money(sub)}</b></div><div class=line><span>Tax (${r.tax}%)</span><b>${money(tax)}</b></div>
+<div class=line style="font-size:18px"><b>Total</b><b>${money(sub+tax)}</b></div>
+<button class="btn primary" style="width:100%;margin-top:10px" onclick=sendPOS()>SEND TO KITCHEN</button></section></div>`;
+}
+function addCart(id){let m=current().menu.find(x=>x.id===id),x=cart.find(x=>x.id===id);x?x.qty++:cart.push({...m,qty:1});render()}
+function sendPOS(){if(!cart.length)return alert("Cart is empty.");let r=current(),sub=cart.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100,o={id:Date.now(),rid:r.id,table:+pt.value,items:cart.map(x=>({name:x.name,price:x.price,qty:x.qty})),subtotal:sub,tax,total:sub+tax,status:"New",eta:null,created:Date.now(),source:"POS"};db.orders.push(o);let t=r.tables.find(t=>t.no===+pt.value);if(t)t.status="Occupied";save();cart=[];go("orders")}
+function orders(){
+let o=getOrders();return `<div class=head><div><h1>Orders</h1><small class=mut>Customer QR + POS orders</small></div></div><div class=card><table class=table><tr><th>ORDER</th><th>TABLE</th><th>ITEMS</th><th>TOTAL</th><th>STATUS</th><th>ACTION</th></tr>
+${o.map(x=>`<tr><td>#${x.id}</td><td>${x.table}</td><td>${x.items.map(i=>esc(i.name)+" × "+i.qty).join(", ")}</td><td>${money(x.total)}</td><td><span class="status ${x.status==="New"?"new":x.status==="Preparing"?"prep":x.status==="Ready"?"ready":"served"}">${x.status}</span></td><td>
+${x.status==="New"?`<button class="btn success" onclick=accept(${x.id})>ACCEPT</button>`:x.status==="Preparing"?`<button class="btn primary" onclick="statusOrder(${x.id},'Ready')">READY</button>`:x.status==="Ready"?`<button class="btn soft" onclick="statusOrder(${x.id},'Served')">SERVED</button>`:""}</td></tr>`).join("")||"<tr><td colspan=6>No orders</td></tr>"}</table></div>`;
+}
+function accept(id){let x=db.orders.find(o=>o.id===id),eta=prompt("Chef preparation time (minutes)","20");if(eta===null)return;x.status="Preparing";x.eta=Math.max(1,+eta||20);x.started=Date.now();save();go("kitchen")}
+function statusOrder(id,s){let x=db.orders.find(o=>o.id===id);x.status=s;if(s==="Served"){let r=current(),t=r.tables.find(t=>t.no===x.table);if(t)t.status="Available"}save();render()}
+function kitchen(){
+let o=getOrders(),cols=["New","Preparing","Ready"];return `<div class=head><div><h1>Kitchen / KOT</h1><small class=mut>Preparation board</small></div></div><div class=kanban>${cols.map(c=>`<section class=col><h3>${c.toUpperCase()}</h3>
+${o.filter(x=>x.status===c).map(x=>`<div class=order><div class=line><b>#${x.id}</b><span>Table ${x.table}</span></div><ul>${x.items.map(i=>`<li>${i.qty} × ${esc(i.name)}</li>`).join("")}</ul>
+${c==="New"?`<button class="btn success" style="width:100%" onclick=accept(${x.id})>ACCEPT + SET ETA</button>`:c==="Preparing"?`<div class=eta>${x.eta} min</div><button class="btn primary" style="width:100%" onclick="statusOrder(${x.id},'Ready')">ORDER READY</button>`:`<button class="btn soft" style="width:100%" onclick="statusOrder(${x.id},'Served')">MARK SERVED</button>`}</div>`).join("")||"<p class=mut>Empty</p>"}</section>`).join("")}</div>`;
+}
+function tables(){
+let r=current();return `<div class=head><div><h1>Tables & QR</h1><small class=mut>One unique QR per table</small></div><button class="btn primary" onclick=addTable()>+ ADD TABLE</button></div>
+<div class=tgrid>${r.tables.map(t=>`<button class=tile onclick="showQR(${t.no})"><b>Table ${String(t.no).padStart(2,"0")}</b><small>${t.status}</small></button>`).join("")}</div>
+<div class=card style="margin-top:10px"><b>Ordering range:</b> ${r.range}m • ${r.lat!==null?"GPS configured":"GPS not configured"}</div>`;
+}
+function addTable(){let r=current(),n=+prompt("Table number");if(!n||r.tables.some(t=>t.no===n))return alert("Invalid/already existing table.");r.tables.push({no:n,token:token(),status:"Available"});save();render()}
+function customerURL(r,t){let u=new URL(location.href);u.search="";u.hash="";u.searchParams.set("customer","1");u.searchParams.set("rid",r.id);u.searchParams.set("table",t.no);u.searchParams.set("token",t.token);return u.href}
+function showQR(n){
+let r=current(),t=r.tables.find(x=>x.no===n),url=customerURL(r,t);
+open(`<button class=close onclick=close()>×</button><h2>Table ${n} QR</h2><div class=qrbox><div id=qrcode></div></div><p class=mut style="text-align:center">Restaurant ${r.id} • Table ${n}</p>
+<div class=notice>Scan this QR from a customer's phone. It opens the exact restaurant + exact table menu.</div>
+<button class="btn primary" style="width:100%" onclick="navigator.clipboard?.writeText('${url.replaceAll("'","%27")}');alert('Customer link copied')">COPY CUSTOMER LINK</button>
+<button class="btn soft" style="width:100%;margin-top:7px" onclick="location.href='${url.replaceAll("'","%27")}'">OPEN CUSTOMER MENU</button></div>`);
+setTimeout(()=>{let q=$("qrcode");if(q&&window.QRCode)new QRCode(q,{text:url,width:260,height:260,colorDark:"#06294c",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.H})},50);
+}
+function menu(){
+let r=current();return `<div class=head><div><h1>Menu Management</h1><small class=mut>Customer-facing menu</small></div><button class="btn primary" onclick=addMenu()>+ ADD ITEM</button></div><div class=card>
+${r.menu.map(m=>`<div class=line><span><b>${esc(m.name)}</b><small style="display:block;color:#718096">${esc(m.cat)} • ${money(m.price)} • ${esc(m.desc)}</small></span><span><span class="status ${m.active?'ready':'served'}">${m.active?'LIVE':'OFF'}</span> <button class="btn soft" onclick=toggleMenu(${m.id})>Toggle</button> <button class="btn outline" onclick=editMenu(${m.id})>Edit</button></span></div>`).join("")}</div>`;
+}
+function addMenu(id){let r=current(),m=id?r.menu.find(x=>x.id===id):{name:"",cat:"Starters",desc:"",price:0,active:true};open(`<button class=close onclick=close()>×</button><h2>${id?"Edit":"Add"} Menu Item</h2><input class=field id=mn value="${esc(m.name)}" placeholder="Item name"><input class=field id=mc value="${esc(m.cat)}" placeholder="Category"><input class=field id=mp type=number value="${m.price}" placeholder="Price"><textarea class=field id=md placeholder="Description">${esc(m.desc)}</textarea><button class="btn primary" onclick=saveMenu(${id||0})>SAVE ITEM</button>`)}
+function editMenu(id){addMenu(id)}
+function saveMenu(id){let r=current(),m={name:mn.value.trim(),cat:mc.value.trim()||"Other",price:+mp.value||0,desc:md.value.trim(),active:true};if(!m.name)return alert("Item name required.");if(id)Object.assign(r.menu.find(x=>x.id===id),m);else{m.id=Date.now();r.menu.push(m)}save();close();render()}
+function toggleMenu(id){let m=current().menu.find(x=>x.id===id);m.active=!m.active;save();render()}
+function inventory(){return `<div class=head><div><h1>Inventory</h1><small class=mut>Stock workspace</small></div></div><div class=card><h3>Inventory foundation</h3><p>Use this module for ingredients, stock entries, low-stock thresholds and purchase records.</p><p class=mut>For true multi-device inventory sync, this HTML build must be connected to a cloud backend.</p></div>`}
+function reports(){let o=getOrders(),sales=o.reduce((a,x)=>a+x.total,0),tax=o.reduce((a,x)=>a+x.tax,0);return `<div class=head><div><h1>Reports</h1><small class=mut>Restaurant performance</small></div></div><div class=cards><div class="card metric"><small>Total Sales</small><strong>${money(sales)}</strong></div><div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Tax Collected</small><strong>${money(tax)}</strong></div><div class="card metric"><small>Average Order</small><strong>${money(o.length?sales/o.length:0)}</strong></div><div class="card metric"><small>Tables</small><strong>${current().tables.length}</strong></div></div>`}
+function customers(){let o=getOrders(),names=[...new Set(o.map(x=>x.name).filter(Boolean))];return `<div class=head><div><h1>Customers</h1><small class=mut>Customer activity</small></div></div><div class=card>${names.length?names.map(n=>`<div class=line><b>${esc(n)}</b><span>Customer</span></div>`).join(""):"<p class=mut>No named customers yet. Customer names are optional at QR checkout.</p>"}</div>`}
+function settings(){let r=current();return `<div class=head><div><h1>Settings</h1><small class=mut>Tax + geofence</small></div></div><div class=card><input class=field id=sn value="${esc(r.name)}" placeholder="Restaurant name"><input class=field id=st type=number value="${r.tax}" placeholder="Tax %"><input class=field id=sr type=number value="${r.range}" placeholder="Ordering range in meters"><input class=field id=slat type=number step=any value="${r.lat??""}" placeholder="Restaurant latitude"><input class=field id=slng type=number step=any value="${r.lng??""}" placeholder="Restaurant longitude"><button class="btn soft" onclick=getLocation()>USE CURRENT LOCATION</button> <button class="btn primary" onclick=saveSettings()>SAVE SETTINGS</button><p class=mut>Customer orders can be blocked outside the configured radius.</p></div>`}
+function getLocation(){if(!navigator.geolocation)return alert("Geolocation unavailable.");navigator.geolocation.getCurrentPosition(p=>{slat.value=p.coords.latitude;slng.value=p.coords.longitude},()=>alert("Allow location permission."))}
+function saveSettings(){let r=current();r.name=sn.value;r.tax=Math.max(0,+st.value||0);r.range=Math.max(1,+sr.value||100);r.lat=slat.value?+slat.value:null;r.lng=slng.value?+slng.value:null;save();owner();alert("Settings saved.")}
+function subscription(){
+let r=current(),active=r.subscription.active&&(!r.subscription.until||r.subscription.until>Date.now());
+return `<div class=head><div><h1>WEBLYFT Subscription</h1><small class=mut>₹3,499 • 365 days</small></div></div><div class=card style="max-width:680px">
+<div style="background:linear-gradient(135deg,#0872ee,#0755ca);color:#fff;border-radius:12px;padding:25px"><small>WEBLYFT SERVICE PLAN</small><h1>₹3,499 / YEAR</h1><p>365 days • Restaurant OS</p><div class="${active?'successBox':'notice'}">${active?"Subscription ACTIVE":"Subscription not active"}</div><button class="btn" style="background:#fff;color:#0755ca;margin-top:10px" onclick=subscriptionInfo()>PAY / RENEW ₹3,499</button></div>
+<p class=mut><b>Payment separation:</b> this subscription is for WEBLYFT service. Customer food-order payments are separate.</p>
+<div class=notice><b>Payment gateway connection:</b> this standalone HTML cannot securely verify a real merchant payment by itself. The merchant ID must be kept server-side and the gateway webhook must confirm payment before activating 365 days.</div></div>`;
+}
+async function subscriptionInfo(){
+open(`<button class=close onclick="close()">×</button>
+<h2>₹3,499 WEBLYFT Subscription</h2>
+<p>365-day WEBLYFT service subscription.</p>
+<div class=notice><b>PhonePe checkout</b><br>This uses the secure backend endpoint <code>/api/subscription/create</code>. Merchant credentials stay on the server and are never placed in this HTML.</div>
+<button id=payBtn class="btn primary" style="width:100%;margin-top:8px">CONTINUE TO PHONEPE</button>
+<button class="btn outline" style="width:100%;margin-top:7px" onclick="close()">CANCEL</button>`);
+$("payBtn").onclick=async()=>{
+  const r=current(),b=$("payBtn");
+  b.disabled=true;b.textContent="CONNECTING…";
+  try{
+    const res=await fetch("/api/subscription/create",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({restaurantId:r.id,amount:3499,validityDays:365})
+    });
+    if(!res.ok) throw new Error("Backend unavailable");
+    const j=await res.json();
+    if(!j.checkoutUrl) throw new Error("No checkout URL returned");
+    location.href=j.checkoutUrl;
+  }catch(e){
+    b.disabled=false;b.textContent="CONTINUE TO PHONEPE";
+    alert("PhonePe backend is not connected yet. Subscription was NOT activated.");
+  }
 };
-function orderRow(o){return `<div class="order"><div><b>#${o.id} • Table ${o.table}</b><div class="sub">${o.items.map(i=>i.n+' × '+i.q).join(' • ')}</div></div><span class="badge ${o.status==='New'?'new':o.status==='Preparing'?'prep':o.status==='Ready'?'ready':'done'}">${o.status}${o.eta?' • '+o.eta+'m':''}</span></div>`}
-function addCart(id){let m=menu.find(x=>x.id===id),x=cart.find(x=>x.id===id);x?x.q++:cart.push({...m,q:1});render()}
-function chg(id,d){let x=cart.find(y=>y.id===id);if(!x)return;x.q+=d;if(x.q<=0)cart=cart.filter(y=>y.id!==id);render()}
-function sendKOT(){if(!cart.length)return alert('Cart is empty');let sub=cart.reduce((a,x)=>a+x.p*x.q,0),tax=sub*restaurant.tax/100;orders.push({id:Date.now(),table:selectedTable,status:'New',items:cart.map(x=>({...x})),subtotal:sub,tax,total:sub+tax,source:'POS',createdAt:Date.now()});let t=tables.find(x=>x.n===selectedTable);if(t)t.status='occupied';cart=[];persist();go('orders')}
-function accept(id){openModal(`<h2>Accept Order #${id}</h2><p class="sub">Chef sets preparation time.</p><input id="eta" type="number" min="1" value="20"><button class="btn primary" style="width:100%;margin-top:10px" onclick="start(${id})">CONFIRM & START</button>`)}
-function start(id){let o=orders.find(x=>x.id===id);o.status='Preparing';o.eta=+eta.value||20;o.startedAt=Date.now();persist();closeModal();render()}
-function ready(id){let o=orders.find(x=>x.id===id);o.status='Ready';persist();render()}
-function complete(id){let o=orders.find(x=>x.id===id);o.status='Completed';let t=tables.find(x=>x.n===o.table);if(t)t.status='free';persist();render()}
-function bill(id){let o=orders.find(x=>x.id===id),payment=prompt('Payment: Cash / UPI / Card','UPI')||'UPI';bills.push({id:o.id,total:o.total,payment,date:Date.now()});persist();alert('Bill recorded');render()}
-function toggleTable(n){let t=tables.find(x=>x.n===n);t.status=t.status==='free'?'occupied':'free';persist();render()}
-function addTable(){let n=tables.length+1;tables.push({n,status:'free',token:token()});persist();render()}
-function menuModal(){openModal(`<h2>Add Menu Item</h2><input id="mn" placeholder="Item name"><input id="mp" type="number" placeholder="Price"><input id="mc" placeholder="Category"><button class="btn primary" style="width:100%;margin-top:8px" onclick="menu.push({id:Date.now(),n:mn.value,p:+mp.value,c:mc.value||'Food',active:true});persist();closeModal();render()">SAVE</button>`)}
-function stockModal(){openModal(`<h2>Add Inventory</h2><input id="sn" placeholder="Ingredient"><input id="sq" type="number" placeholder="Quantity"><input id="su" placeholder="Unit"><input id="smin" type="number" placeholder="Minimum"><button class="btn primary" style="width:100%;margin-top:8px" onclick="stock.push({n:sn.value,q:+sq.value||0,u:su.value||'pcs',min:+smin.value||0});persist();closeModal();render()">SAVE</button>`)}
-function custModal(){openModal(`<h2>Add Customer</h2><input id="cn" placeholder="Name"><input id="cp" placeholder="Phone"><button class="btn primary" style="width:100%;margin-top:8px" onclick="customers.push({n:cn.value,p:cp.value,s:0});persist();closeModal();render()">SAVE</button>`)}
-function openModal(s){document.getElementById('modal').innerHTML=`<div class="modal"><div class="modalbox">${s}<button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Cancel</button></div></div>`}
-function closeModal(){document.getElementById('modal').innerHTML=''}
-function render(){if(!logged)return login();document.getElementById('root').innerHTML=shell();document.getElementById('content').innerHTML=views[page]()}
-render();
+}
+function open(x){$("modal").innerHTML=`<div class=modal onclick="if(event.target===this)close()"><div class=box>${x}</div></div>`}
+function close(){$("modal").innerHTML=""}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+
+function distance(a,b,c,d){let R=6371000,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p,x=Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+function customer(){
+let p=new URLSearchParams(location.search),r=db.restaurants.find(x=>x.id===p.get("rid")),t=r&&r.tables.find(x=>x.no===+p.get("table")&&x.token===p.get("token"));
+if(!r||!t)return $("app").innerHTML=`<div class=wrap><div class=hero><h1>Invalid QR</h1><p>This QR is not connected to a valid restaurant table.</p></div></div>`;
+let cc=[],cat="All",qq="",placed=null;
+function renderC(){
+let cats=["All",...new Set(r.menu.map(x=>x.cat))],items=r.menu.filter(x=>x.active&&(cat==="All"||x.cat===cat)&&x.name.toLowerCase().includes(qq.toLowerCase())),sub=cc.reduce((a,x)=>a+x.price*x.qty,0);
+$("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block;opacity:.75">TABLE ${t.no} • CONNECTED</small></header><main class=wrap>
+<div class=hero><small>WELCOME</small><h1>Order from your table</h1><p style="margin:0">Your QR is connected to Table ${t.no}.</p></div>
+<input class=search value="${esc(qq)}" placeholder="Search dishes..." oninput="qq=this.value;renderC()"><div class=tabs>${cats.map(c=>`<button class="${cat===c?'on':''}" onclick="cat='${esc(c)}';renderC()">${esc(c)}</button>`).join("")}</div>
+${items.map(m=>`<div class=citem><div><b>${esc(m.name)}</b><small style="display:block;color:#718096">${esc(m.cat)} • ${esc(m.desc)}</small><strong>${money(m.price)}</strong></div><button class="btn primary" onclick="addC(${m.id})">ADD</button></div>`).join("")||"<p class=mut>No dishes found.</p>"}</main>
+${cc.length?`<div class=cartbar><b>${cc.reduce((a,x)=>a+x.qty,0)} items • ${money(sub)}</b><button class=btn style="float:right;background:#fff;color:#0755ca" onclick=checkoutC()>VIEW CART</button></div>`:""}</div>`;
+}
+window.addC=id=>{let m=r.menu.find(x=>x.id===id),x=cc.find(x=>x.id===id);x?x.qty++:cc.push({...m,qty:1});renderC()};
+window.checkoutC=()=>{let sub=cc.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;open(`<button class=close onclick=close()>×</button><h2>Cart • Table ${t.no}</h2>${cc.map(x=>`<div class=line><span>${esc(x.name)} × ${x.qty}</span><b>${money(x.price*x.qty)}</b></div>`).join("")}<div class=line><span>Subtotal</span><b>${money(sub)}</b></div><div class=line><span>Tax (${r.tax}%)</span><b>${money(tax)}</b></div><div class=line><b>Total</b><b>${money(sub+tax)}</b></div><input id=customerName class=field placeholder="Name (optional)"><textarea id=customerNote class=field placeholder="Special note"></textarea><button class="btn primary" style="width:100%" onclick=placeC()>PLACE ORDER</button>`)}
+window.placeC=()=>{if(r.lat!==null&&navigator.geolocation){navigator.geolocation.getCurrentPosition(p=>finishC(p.coords.latitude,p.coords.longitude),()=>alert("Location permission is required for ordering from this table."))}else finishC(null,null)};
+function finishC(lat,lng){
+if(r.lat!==null&&r.lng!==null){if(lat===null||lng===null)return alert("Location permission is required.");let d=distance(r.lat,r.lng,lat,lng);if(d>r.range)return alert("You are outside the restaurant's "+r.range+"m ordering range.");}
+let sub=cc.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100,o={id:Date.now(),rid:r.id,table:t.no,name:$("customerName").value,note:$("customerNote").value,items:cc.map(x=>({name:x.name,price:x.price,qty:x.qty})),subtotal:sub,tax,total:sub+tax,status:"New",eta:null,created:Date.now(),source:"QR"};db.orders.push(o);t.status="Occupied";save();close();placed=o;trackC()}
+function trackC(){
+let o=db.orders.find(x=>x.id===placed.id);
+$("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block">TABLE ${o.table} • ORDER #${o.id}</small></header><main class=wrap><div class=card>
+<div class=timeline>${["New","Preparing","Ready","Served"].map((x,i)=>{let idx=["New","Preparing","Ready","Served"].indexOf(o.status);return `<div class="node ${idx>=i?'on':''}"><div style="width:20px;height:20px;border-radius:50%;margin:auto;background:${idx>=i?'#19a66a':'#e3e9ef'}"></div>${x}</div>`}).join("")}</div>
+${o.status==="Preparing"?`<p style="text-align:center">Your order is being prepared</p><div class=timer id=ct>--:--</div>`:o.status==="Ready"?`<h2 style="text-align:center;color:#19a66a">Your order is ready 🎉</h2>`:o.status==="Served"?`<h2 style="text-align:center">Order served</h2>`:`<h2 style="text-align:center">Order received</h2><p class=mut style="text-align:center">Waiting for kitchen confirmation.</p>`}</div></main></div>`;
+if(o.status==="Preparing"){clearInterval(window.cti);window.cti=setInterval(()=>{let left=Math.max(0,(o.started||Date.now())+o.eta*60000-Date.now()),m=Math.floor(left/60000),s=Math.floor(left/1000)%60;if($("ct"))$("ct").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")},1000)}
+}
+renderC();
+}
+
+if(new URLSearchParams(location.search).get("customer"))customer();else if(db.session&&current())owner();else auth();
 </script>
-</body></html>
+</body>
+</html>
