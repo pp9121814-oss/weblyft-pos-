@@ -64,7 +64,7 @@ async function loadCloud(r){
   sb.from("subscriptions").select("*").eq("restaurant_id",r.id).order("created_at",{ascending:false}).limit(1)
  ]);
  if(t.error)throw t.error;if(m.error)throw m.error;if(c.error)throw c.error;
- r.tables=(t.data||[]).map(x=>({no:x.table_number,id:x.id,token:x.qr_token,status:x.status==="occupied"?"Occupied":x.status==="reserved"?"Reserved":"Available"}));
+ r.code=r.code||r.restaurant_code||null;r.tables=(t.data||[]).map(x=>({no:x.table_number,id:x.id,token:x.qr_token,status:x.status==="occupied"?"Occupied":x.status==="reserved"?"Reserved":"Available"}));
  r.menu=(m.data||[]).map(x=>({id:x.id,name:x.name,cat:"Menu",desc:x.description||"",price:Number(x.price),active:x.is_available}));
  const s=c.data?.[0];r.subscription={active:s?.status==="active",until:s?.expires_at?new Date(s.expires_at).getTime():null};save();
 }
@@ -176,7 +176,7 @@ let r=current();return `<div class=head><div><h1>Tables & QR</h1><small class=mu
 <div class=card style="margin-top:10px"><b>Ordering range:</b> ${r.range}m • ${r.lat!==null?"GPS configured":"GPS not configured"}</div>`;
 }
 function addTable(){let r=current(),n=+prompt("Table number");if(!n||r.tables.some(t=>t.no===n))return alert("Invalid/already existing table.");r.tables.push({no:n,token:token(),status:"Available"});save();render()}
-function customerURL(r,t){let u=new URL(location.href);u.search="";u.hash="";u.searchParams.set("customer","1");u.searchParams.set("rid",r.id);u.searchParams.set("table",t.no);u.searchParams.set("token",t.token);return u.href}
+function customerURL(r,t){let u=new URL(location.href);u.search="";u.hash="";u.searchParams.set("customer","1");u.searchParams.set("rid",r.code||r.id);u.searchParams.set("table",t.no);u.searchParams.set("token",t.token);return u.href}
 function showQR(n){
 let r=current(),t=r.tables.find(x=>x.no===n),url=customerURL(r,t);
 open(`<button class=close onclick=close()>×</button><h2>Table ${n} QR</h2><div class=qrbox><div id=qrcode></div></div><p class=mut style="text-align:center">Restaurant ${r.id} • Table ${n}</p>
@@ -246,9 +246,16 @@ if(!rid||!tableNo||!token){
 }
 $("app").innerHTML=`<div class=wrap><div class=card style="text-align:center"><h2>Loading menu…</h2><p class=mut>Connecting to WEBLYFT</p></div></div>`;
 try{
- const {data,error}=await sb.rpc("get_public_qr_menu",{
-   p_restaurant_id:rid,p_table_number:tableNo,p_qr_token:token
- });
+ let data,error;
+ if(/^WL-/i.test(rid)){
+   ({data,error}=await sb.rpc("get_public_qr_menu_by_code",{
+     p_restaurant_code:rid,p_table_number:tableNo,p_qr_token:token
+   }));
+ }else{
+   ({data,error}=await sb.rpc("get_public_qr_menu",{
+     p_restaurant_id:rid,p_table_number:tableNo,p_qr_token:token
+   }));
+ }
  if(error)throw error;
  if(!data||!data.restaurant||!data.table)throw new Error("Invalid QR");
  let r={
