@@ -201,7 +201,7 @@ function addTable(){let r=current(),n=+prompt("Table number");if(!n||r.tables.so
 function customerURL(r,t){let u=new URL(location.href);u.search="";u.hash="";u.searchParams.set("customer","1");u.searchParams.set("rid",r.code||r.id);u.searchParams.set("table",t.no);u.searchParams.set("token",t.token);return u.href}
 function showQR(n){
 let r=current(),t=r.tables.find(x=>x.no===n),url=customerURL(r,t);
-open(`<button class=close onclick=close()>×</button><h2>Table ${n} QR</h2><div class=qrbox><div id=qrcode></div></div><p class=mut style="text-align:center">Restaurant ${r.id} • Table ${n}</p>
+open(`<button class=close onclick=closeModal()>×</button><h2>Table ${n} QR</h2><div class=qrbox><div id=qrcode></div></div><p class=mut style="text-align:center">Restaurant ${r.id} • Table ${n}</p>
 <div class=notice>Scan this QR from a customer's phone. It opens the exact restaurant + exact table menu.</div>
 <button class="btn primary" style="width:100%" onclick="navigator.clipboard?.writeText('${url.replaceAll("'","%27")}');alert('Customer link copied')">COPY CUSTOMER LINK</button>
 <button class="btn soft" style="width:100%;margin-top:7px" onclick="location.href='${url.replaceAll("'","%27")}'">OPEN CUSTOMER MENU</button></div>`);
@@ -211,10 +211,34 @@ function menu(){
 let r=current();return `<div class=head><div><h1>Menu Management</h1><small class=mut>Customer-facing menu</small></div><button class="btn primary" onclick=addMenu()>+ ADD ITEM</button></div><div class=card>
 ${r.menu.map(m=>`<div class=line><span><b>${esc(m.name)}</b><small style="display:block;color:#718096">${esc(m.cat)} • ${money(m.price)} • ${esc(m.desc)}</small></span><span><span class="status ${m.active?'ready':'served'}">${m.active?'LIVE':'OFF'}</span> <button class="btn soft" onclick=toggleMenu(${m.id})>Toggle</button> <button class="btn outline" onclick=editMenu(${m.id})>Edit</button></span></div>`).join("")}</div>`;
 }
-function addMenu(id){let r=current(),m=id?r.menu.find(x=>x.id===id):{name:"",cat:"Starters",desc:"",price:0,active:true};open(`<button class=close onclick=close()>×</button><h2>${id?"Edit":"Add"} Menu Item</h2><input class=field id=mn value="${esc(m.name)}" placeholder="Item name"><input class=field id=mc value="${esc(m.cat)}" placeholder="Category"><input class=field id=mp type=number value="${m.price}" placeholder="Price"><textarea class=field id=md placeholder="Description">${esc(m.desc)}</textarea><button class="btn primary" onclick=saveMenu(${id||0})>SAVE ITEM</button>`)}
+function addMenu(id){let r=current(),m=id?r.menu.find(x=>x.id===id):{name:"",cat:"Starters",desc:"",price:0,active:true};open(`<button class=close onclick=closeModal()>×</button><h2>${id?"Edit":"Add"} Menu Item</h2><input class=field id=mn value="${esc(m.name)}" placeholder="Item name"><input class=field id=mc value="${esc(m.cat)}" placeholder="Category"><input class=field id=mp type=number value="${m.price}" placeholder="Price"><textarea class=field id=md placeholder="Description">${esc(m.desc)}</textarea><button class="btn primary" onclick=saveMenu(${id||0})>SAVE ITEM</button>`)}
 function editMenu(id){addMenu(id)}
-function saveMenu(id){let r=current(),m={name:mn.value.trim(),cat:mc.value.trim()||"Other",price:+mp.value||0,desc:md.value.trim(),active:true};if(!m.name)return alert("Item name required.");if(id)Object.assign(r.menu.find(x=>x.id===id),m);else{m.id=Date.now();r.menu.push(m)}save();close();render()}
-function toggleMenu(id){let m=current().menu.find(x=>x.id===id);m.active=!m.active;save();render()}
+async function saveMenu(id){
+ let r=current(),m={name:mn.value.trim(),cat:mc.value.trim()||"Other",price:+mp.value||0,desc:md.value.trim(),active:true};
+ if(!m.name)return alert("Item name required.");
+ try{
+  if(id){
+   const old=r.menu.find(x=>String(x.id)===String(id));
+   if(!old)throw new Error("Menu item not found.");
+   const {data,error}=await sb.from("menu_items").update({name:m.name,description:m.desc,price:m.price,is_available:m.active}).eq("id",id).eq("restaurant_id",r.id).select("*").single();
+   if(error)throw error;
+   Object.assign(old,{id:data.id,name:data.name,cat:m.cat,desc:data.description||"",price:Number(data.price||0),active:!!data.is_available});
+  }else{
+   const {data,error}=await sb.from("menu_items").insert({restaurant_id:r.id,category_id:null,name:m.name,description:m.desc,price:m.price,is_available:m.active}).select("*").single();
+   if(error)throw error;
+   r.menu.push({id:data.id,name:data.name,cat:m.cat,desc:data.description||"",price:Number(data.price||0),active:!!data.is_available});
+  }
+  save();close();await loadCloud(r);render();
+ }catch(e){alert("Menu item could not be saved: "+(e.message||e));}
+}
+async function toggleMenu(id){
+ let r=current(),m=r.menu.find(x=>String(x.id)===String(id));if(!m)return;
+ try{
+  const {data,error}=await sb.from("menu_items").update({is_available:!m.active}).eq("id",id).eq("restaurant_id",r.id).select("*").single();
+  if(error)throw error;
+  m.active=!!data.is_available;save();render();
+ }catch(e){alert("Menu item could not be updated: "+(e.message||e));}
+}
 function inventory(){return `<div class=head><div><h1>Inventory</h1><small class=mut>Stock workspace</small></div></div><div class=card><h3>Inventory foundation</h3><p>Use this module for ingredients, stock entries, low-stock thresholds and purchase records.</p><p class=mut>For true multi-device inventory sync, this HTML build must be connected to a cloud backend.</p></div>`}
 function reports(){let o=getOrders(),sales=o.reduce((a,x)=>a+x.total,0),tax=o.reduce((a,x)=>a+x.tax,0);return `<div class=head><div><h1>Reports</h1><small class=mut>Restaurant performance</small></div></div><div class=cards><div class="card metric"><small>Total Sales</small><strong>${money(sales)}</strong></div><div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Tax Collected</small><strong>${money(tax)}</strong></div><div class="card metric"><small>Average Order</small><strong>${money(o.length?sales/o.length:0)}</strong></div><div class="card metric"><small>Tables</small><strong>${current().tables.length}</strong></div></div>`}
 function customers(){let o=getOrders(),names=[...new Set(o.map(x=>x.name).filter(Boolean))];return `<div class=head><div><h1>Customers</h1><small class=mut>Customer activity</small></div></div><div class=card>${names.length?names.map(n=>`<div class=line><b>${esc(n)}</b><span>Customer</span></div>`).join(""):"<p class=mut>No named customers yet. Customer names are optional at QR checkout.</p>"}</div>`}
@@ -229,12 +253,12 @@ return `<div class=head><div><h1>WEBLYFT Subscription</h1><small class=mut>₹3,
 <div class=notice><b>Payment gateway connection:</b> this standalone HTML cannot securely verify a real merchant payment by itself. The merchant ID must be kept server-side and the gateway webhook must confirm payment before activating 365 days.</div></div>`;
 }
 async function subscriptionInfo(){
-open(`<button class=close onclick="close()">×</button>
+open(`<button class=close onclick="closeModal()">×</button>
 <h2>₹3,499 WEBLYFT Subscription</h2>
 <p>365-day WEBLYFT service subscription.</p>
 <div class=notice><b>PhonePe checkout</b><br>This uses the secure backend endpoint <code>/api/subscription/create</code>. Merchant credentials stay on the server and are never placed in this HTML.</div>
 <button id=payBtn class="btn primary" style="width:100%;margin-top:8px">CONTINUE TO PHONEPE</button>
-<button class="btn outline" style="width:100%;margin-top:7px" onclick="close()">CANCEL</button>`);
+<button class="btn outline" style="width:100%;margin-top:7px" onclick="closeModal()">CANCEL</button>`);
 $("payBtn").onclick=async()=>{
   const r=current(),b=$("payBtn");
   b.disabled=true;b.textContent="CONNECTING…";
@@ -254,8 +278,8 @@ $("payBtn").onclick=async()=>{
   }
 };
 }
-function open(x){$("modal").innerHTML=`<div class=modal onclick="if(event.target===this)close()"><div class=box>${x}</div></div>`}
-function close(){$("modal").innerHTML=""}
+function open(x){$("modal").innerHTML=`<div class=modal onclick="if(event.target===this)closeModal()"><div class=box>${x}</div></div>`}
+function closeModal(){$("modal").innerHTML=""}
 document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
 
 function distance(a,b,c,d){let R=6371000,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p,x=Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
@@ -310,7 +334,7 @@ try{
 
  window.__qrCheckout=()=>{
   let sub=cc.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;
-  open(`<button class=close onclick=close()>×</button><h2>Cart • Table ${t.no}</h2>
+  open(`<button class=close onclick=closeModal()>×</button><h2>Cart • Table ${t.no}</h2>
   ${cc.map(x=>`<div class=line><span>${esc(x.name)} × ${x.qty}</span><b>${money(x.price*x.qty)}</b></div>`).join("")}
   <div class=line><span>Subtotal</span><b>${money(sub)}</b></div>
   <div class=line><span>Tax (${r.tax}%)</span><b>${money(tax)}</b></div>
