@@ -46,10 +46,22 @@ const SUPABASE_URL="https://gpolqilwfxgssxrixpqe.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_c-xQEXAygNy1J8_0YXNjwg_f2Lu-xJe";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 async function cloudRegister(name,owner,email,phone,password,tables){
- const {data,error}=await sb.auth.signUp({email,password}); if(error)throw error;
+ const emailClean=email.trim().toLowerCase();
+ const {data,error}=await sb.auth.signUp({email:emailClean,password});
+ if(error)throw error;
  if(!data.user)throw new Error("No user returned");
- const {data:p,error:e}=await sb.rpc("create_restaurant_profile",{p_name:name,p_owner_name:owner,p_email:email,p_phone:phone,p_table_count:tables});
- if(e)throw e; return p;
+
+ // The profile RPC needs an authenticated session. If Supabase has
+ // "Confirm email" enabled, signUp may return no session yet.
+ if(!data.session){
+   throw new Error("EMAIL_CONFIRM_REQUIRED");
+ }
+
+ const {data:p,error:e}=await sb.rpc("create_restaurant_profile",{
+   p_name:name,p_owner_name:owner,p_email:emailClean,p_phone:phone,p_table_count:tables
+ });
+ if(e)throw e;
+ return p;
 }
 async function cloudLogin(email,password){
  const {data,error}=await sb.auth.signInWithPassword({email,password}); if(error)throw error;
@@ -101,14 +113,25 @@ $("app").innerHTML=`<div class=auth><div class=authbox>
 </div></div>`;
 }
 async function register(){
+ const btn=document.querySelector('button[onclick="register()"]');
+ if(btn?.disabled)return;
  if(!rn.value||!ro.value||!re.value||!rpass.value)return alert("Fill all required fields.");
  if(rpass.value.length<6)return alert("Password must be at least 6 characters.");
+ if(btn){btn.disabled=true;btn.textContent="CREATING ACCOUNT…";}
  try{
   const r=await cloudRegister(rn.value.trim(),ro.value.trim(),re.value.trim(),rp.value.trim(),rpass.value,+nt.value||12);
   db.session=r.id;
+  db.restaurants=db.restaurants.filter(x=>x.id!==r.id);
   db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,subscription:{active:false,until:null},tables:[],menu:[]});
   save(); await loadCloud(current()); owner();
- }catch(e){alert("Registration failed: "+e.message);}
+ }catch(e){
+  if(e.message==="EMAIL_CONFIRM_REQUIRED"){
+   alert("Account created, but Supabase is waiting for email confirmation.\n\nFor this WEBLYFT setup, open Supabase → Authentication → Sign In / Providers → Confirm email and turn it OFF, then try registration again.");
+  }else{
+   alert("Registration failed: "+(e.message||"Unknown error"));
+  }
+  if(btn){btn.disabled=false;btn.textContent="CREATE ACCOUNT";}
+ }
 }
 async function login(){
  try{
@@ -120,7 +143,6 @@ async function login(){
 }
 async function logout(){await sb.auth.signOut();db.session=null;save();auth();}
 function current(){return db.restaurants.find(r=>r.id===db.session)}
-function logout(){db.session=null;save();auth()}
 const nav=[["dashboard","▦","Dashboard"],["pos","▣","POS / Billing"],["orders","◉","Orders"],["kitchen","♨","Kitchen / KOT"],["tables","▦","Tables & QR"],["menu","☷","Menu"],["inventory","◒","Inventory"],["reports","◔","Reports"],["customers","♙","Customers"],["settings","⚙","Settings"],["subscription","◆","Subscription"]];
 function shell(r){
 return `<div class=top><div class=brand>WEB<span>LYFT</span> <small class=mut>Restaurant OS</small></div>
