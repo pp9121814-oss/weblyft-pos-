@@ -30,6 +30,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:active{tr
 </head>
 <body>
 <div id="app"></div><div id="modal"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* WEBLYFT FINAL HTML APP
    - Phone-first responsive UI
@@ -41,6 +42,33 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:active{tr
 const KEY="WEBLYFT_FINAL_V1";
 let db=JSON.parse(localStorage.getItem(KEY)||"null")||{restaurants:[],orders:[],session:null};
 let page="dashboard",cart=[],pcat="All",pq="";
+const SUPABASE_URL="https://gpolqilwfxgssxrixpqe.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_c-xQEXAygNy1J8_0YXNjwg_f2Lu-xJe";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+async function cloudRegister(name,owner,email,phone,password,tables){
+ const {data,error}=await sb.auth.signUp({email,password}); if(error)throw error;
+ if(!data.user)throw new Error("No user returned");
+ const {data:p,error:e}=await sb.rpc("create_restaurant_profile",{p_name:name,p_owner_name:owner,p_email:email,p_phone:phone,p_table_count:tables});
+ if(e)throw e; return p;
+}
+async function cloudLogin(email,password){
+ const {data,error}=await sb.auth.signInWithPassword({email,password}); if(error)throw error;
+ const {data:s,error:se}=await sb.from("staff").select("restaurant_id,name,role,is_active").eq("id",data.user.id).single(); if(se)throw se;
+ const {data:r,error:re}=await sb.from("restaurants").select("*").eq("id",s.restaurant_id).single(); if(re)throw re;
+ return r;
+}
+async function loadCloud(r){
+ const [t,m,c]=await Promise.all([
+  sb.from("restaurant_tables").select("*").eq("restaurant_id",r.id).order("table_number"),
+  sb.from("menu_items").select("*").eq("restaurant_id",r.id).order("created_at"),
+  sb.from("subscriptions").select("*").eq("restaurant_id",r.id).order("created_at",{ascending:false}).limit(1)
+ ]);
+ if(t.error)throw t.error;if(m.error)throw m.error;if(c.error)throw c.error;
+ r.tables=(t.data||[]).map(x=>({no:x.table_number,id:x.id,token:x.qr_token,status:x.status==="occupied"?"Occupied":x.status==="reserved"?"Reserved":"Available"}));
+ r.menu=(m.data||[]).map(x=>({id:x.id,name:x.name,cat:"Menu",desc:x.description||"",price:Number(x.price),active:x.is_available}));
+ const s=c.data?.[0];r.subscription={active:s?.status==="active",until:s?.expires_at?new Date(s.expires_at).getTime():null};save();
+}
+
 const $=id=>document.getElementById(id);
 const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
 const money=n=>"₹"+Math.round(n||0).toLocaleString("en-IN");
@@ -72,28 +100,25 @@ $("app").innerHTML=`<div class=auth><div class=authbox>
 <button class="btn outline" style="width:100%;margin-top:7px" onclick=auth()>BACK</button>
 </div></div>`;
 }
-function register(){
-if(!rn.value||!ro.value||!re.value||!rpass.value)return alert("Fill all required fields.");
-if(db.restaurants.some(r=>r.email.toLowerCase()===re.value.toLowerCase()))return alert("Email already registered.");
-let r={id:rid(),name:rn.value,owner:ro.value,email:re.value,phone:rp.value,password:rpass.value,
-tax:5,range:100,lat:null,lng:null,subscription:{active:false,until:null},
-tables:[],menu:[
-{id:1,name:"Paneer Tikka",cat:"Starters",desc:"Grilled paneer with spices",price:180,active:true},
-{id:2,name:"Veg Momos",cat:"Starters",desc:"Steamed vegetable dumplings",price:120,active:true},
-{id:3,name:"Cheese Burger",cat:"Burgers",desc:"Crispy patty with cheese",price:150,active:true},
-{id:4,name:"Cold Coffee",cat:"Drinks",desc:"Chilled creamy coffee",price:120,active:true},
-{id:5,name:"French Fries",cat:"Sides",desc:"Golden crisp fries",price:110,active:true},
-{id:6,name:"Veg Pizza",cat:"Pizza",desc:"Classic vegetable pizza",price:220,active:true},
-{id:7,name:"Chocolate Shake",cat:"Desserts",desc:"Rich chocolate shake",price:150,active:true}
-]};
-for(let i=1;i<=Math.max(1,Math.min(200,+nt.value||12));i++)r.tables.push({no:i,token:token(),status:"Available"});
-db.restaurants.push(r);save();alert("Restaurant created!\nRestaurant ID: "+r.id);auth();
+async function register(){
+ if(!rn.value||!ro.value||!re.value||!rpass.value)return alert("Fill all required fields.");
+ if(rpass.value.length<6)return alert("Password must be at least 6 characters.");
+ try{
+  const r=await cloudRegister(rn.value.trim(),ro.value.trim(),re.value.trim(),rp.value.trim(),rpass.value,+nt.value||12);
+  db.session=r.id;
+  db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,subscription:{active:false,until:null},tables:[],menu:[]});
+  save(); await loadCloud(current()); owner();
+ }catch(e){alert("Registration failed: "+e.message);}
 }
-function login(){
-let r=db.restaurants.find(x=>x.email.toLowerCase()===li.value.toLowerCase()||x.id===li.value);
-if(!r||r.password!==lp.value)return alert("Invalid login details.");
-db.session=r.id;save();owner();
+async function login(){
+ try{
+  const r=await cloudLogin(li.value.trim(),lp.value);
+  db.session=r.id;db.restaurants=db.restaurants.filter(x=>x.id!==r.id);
+  db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,subscription:{active:false,until:null},tables:[],menu:[]});
+  save();await loadCloud(current());owner();
+ }catch(e){alert("Login failed: "+e.message);}
 }
+async function logout(){await sb.auth.signOut();db.session=null;save();auth();}
 function current(){return db.restaurants.find(r=>r.id===db.session)}
 function logout(){db.session=null;save();auth()}
 const nav=[["dashboard","▦","Dashboard"],["pos","▣","POS / Billing"],["orders","◉","Orders"],["kitchen","♨","Kitchen / KOT"],["tables","▦","Tables & QR"],["menu","☷","Menu"],["inventory","◒","Inventory"],["reports","◔","Reports"],["customers","♙","Customers"],["settings","⚙","Settings"],["subscription","◆","Subscription"]];
@@ -105,7 +130,7 @@ return `<div class=top><div class=brand>WEB<span>LYFT</span> <small class=mut>Re
 <div class=nav>${nav.map(n=>`<button class="${page===n[0]?"active":""}" onclick="go('${n[0]}')">${n[1]} &nbsp; ${n[2]}</button>`).join("")}</div>
 </aside><main class=main id=main></main></div>`;
 }
-function owner(){let r=current();$("app").innerHTML=shell(r);render()}
+async function owner(){let r=current();$("app").innerHTML=shell(r);try{await loadCloud(r);$("app").innerHTML=shell(r);render()}catch(e){render();console.warn(e)}}
 function go(p){page=p;owner()}
 function render(){let f={dashboard,pos,orders,kitchen,tables,menu,inventory,reports,customers,settings,subscription}[page];let out=f();if(out instanceof Promise)out.then(x=>main.innerHTML=x);else main.innerHTML=out}
 function getOrders(){return db.orders.filter(o=>o.rid===current().id).sort((a,b)=>b.id-a.id)}
@@ -212,32 +237,107 @@ function close(){$("modal").innerHTML=""}
 document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
 
 function distance(a,b,c,d){let R=6371000,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p,x=Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
-function customer(){
-let p=new URLSearchParams(location.search),r=db.restaurants.find(x=>x.id===p.get("rid")),t=r&&r.tables.find(x=>x.no===+p.get("table")&&x.token===p.get("token"));
-if(!r||!t)return $("app").innerHTML=`<div class=wrap><div class=hero><h1>Invalid QR</h1><p>This QR is not connected to a valid restaurant table.</p></div></div>`;
-let cc=[],cat="All",qq="",placed=null;
-function renderC(){
-let cats=["All",...new Set(r.menu.map(x=>x.cat))],items=r.menu.filter(x=>x.active&&(cat==="All"||x.cat===cat)&&x.name.toLowerCase().includes(qq.toLowerCase())),sub=cc.reduce((a,x)=>a+x.price*x.qty,0);
-$("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block;opacity:.75">TABLE ${t.no} • CONNECTED</small></header><main class=wrap>
-<div class=hero><small>WELCOME</small><h1>Order from your table</h1><p style="margin:0">Your QR is connected to Table ${t.no}.</p></div>
-<input class=search value="${esc(qq)}" placeholder="Search dishes..." oninput="qq=this.value;renderC()"><div class=tabs>${cats.map(c=>`<button class="${cat===c?'on':''}" onclick="cat='${esc(c)}';renderC()">${esc(c)}</button>`).join("")}</div>
-${items.map(m=>`<div class=citem><div><b>${esc(m.name)}</b><small style="display:block;color:#718096">${esc(m.cat)} • ${esc(m.desc)}</small><strong>${money(m.price)}</strong></div><button class="btn primary" onclick="addC(${m.id})">ADD</button></div>`).join("")||"<p class=mut>No dishes found.</p>"}</main>
-${cc.length?`<div class=cartbar><b>${cc.reduce((a,x)=>a+x.qty,0)} items • ${money(sub)}</b><button class=btn style="float:right;background:#fff;color:#0755ca" onclick=checkoutC()>VIEW CART</button></div>`:""}</div>`;
+async function customer(){
+let p=new URLSearchParams(location.search);
+let rid=p.get("rid"),tableNo=Number(p.get("table")),token=p.get("token");
+if(!rid||!tableNo||!token){
+ $("app").innerHTML=`<div class=wrap><div class=hero><h1>Invalid QR</h1><p>This QR link is missing restaurant or table information.</p></div></div>`;
+ return;
 }
-window.addC=id=>{let m=r.menu.find(x=>x.id===id),x=cc.find(x=>x.id===id);x?x.qty++:cc.push({...m,qty:1});renderC()};
-window.checkoutC=()=>{let sub=cc.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;open(`<button class=close onclick=close()>×</button><h2>Cart • Table ${t.no}</h2>${cc.map(x=>`<div class=line><span>${esc(x.name)} × ${x.qty}</span><b>${money(x.price*x.qty)}</b></div>`).join("")}<div class=line><span>Subtotal</span><b>${money(sub)}</b></div><div class=line><span>Tax (${r.tax}%)</span><b>${money(tax)}</b></div><div class=line><b>Total</b><b>${money(sub+tax)}</b></div><input id=customerName class=field placeholder="Name (optional)"><textarea id=customerNote class=field placeholder="Special note"></textarea><button class="btn primary" style="width:100%" onclick=placeC()>PLACE ORDER</button>`)}
-window.placeC=()=>{if(r.lat!==null&&navigator.geolocation){navigator.geolocation.getCurrentPosition(p=>finishC(p.coords.latitude,p.coords.longitude),()=>alert("Location permission is required for ordering from this table."))}else finishC(null,null)};
-function finishC(lat,lng){
-if(r.lat!==null&&r.lng!==null){if(lat===null||lng===null)return alert("Location permission is required.");let d=distance(r.lat,r.lng,lat,lng);if(d>r.range)return alert("You are outside the restaurant's "+r.range+"m ordering range.");}
-let sub=cc.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100,o={id:Date.now(),rid:r.id,table:t.no,name:$("customerName").value,note:$("customerNote").value,items:cc.map(x=>({name:x.name,price:x.price,qty:x.qty})),subtotal:sub,tax,total:sub+tax,status:"New",eta:null,created:Date.now(),source:"QR"};db.orders.push(o);t.status="Occupied";save();close();placed=o;trackC()}
-function trackC(){
-let o=db.orders.find(x=>x.id===placed.id);
-$("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block">TABLE ${o.table} • ORDER #${o.id}</small></header><main class=wrap><div class=card>
-<div class=timeline>${["New","Preparing","Ready","Served"].map((x,i)=>{let idx=["New","Preparing","Ready","Served"].indexOf(o.status);return `<div class="node ${idx>=i?'on':''}"><div style="width:20px;height:20px;border-radius:50%;margin:auto;background:${idx>=i?'#19a66a':'#e3e9ef'}"></div>${x}</div>`}).join("")}</div>
-${o.status==="Preparing"?`<p style="text-align:center">Your order is being prepared</p><div class=timer id=ct>--:--</div>`:o.status==="Ready"?`<h2 style="text-align:center;color:#19a66a">Your order is ready 🎉</h2>`:o.status==="Served"?`<h2 style="text-align:center">Order served</h2>`:`<h2 style="text-align:center">Order received</h2><p class=mut style="text-align:center">Waiting for kitchen confirmation.</p>`}</div></main></div>`;
-if(o.status==="Preparing"){clearInterval(window.cti);window.cti=setInterval(()=>{let left=Math.max(0,(o.started||Date.now())+o.eta*60000-Date.now()),m=Math.floor(left/60000),s=Math.floor(left/1000)%60;if($("ct"))$("ct").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")},1000)}
+$("app").innerHTML=`<div class=wrap><div class=card style="text-align:center"><h2>Loading menu…</h2><p class=mut>Connecting to WEBLYFT</p></div></div>`;
+try{
+ const {data,error}=await sb.rpc("get_public_qr_menu",{
+   p_restaurant_id:rid,p_table_number:tableNo,p_qr_token:token
+ });
+ if(error)throw error;
+ if(!data||!data.restaurant||!data.table)throw new Error("Invalid QR");
+ let r={
+   id:data.restaurant.id,name:data.restaurant.name,tax:Number(data.restaurant.tax_percent||0),
+   range:Number(data.restaurant.ordering_radius_m||100),
+   lat:data.restaurant.latitude,lng:data.restaurant.longitude
+ };
+ let t={no:Number(data.table.table_number),id:data.table.id,token:data.table.qr_token,status:data.table.status};
+ r.menu=(data.menu||[]).map(m=>({
+   id:m.id,name:m.name,cat:m.category||"Other",desc:m.description||"",
+   price:Number(m.price||0),active:!!m.is_available
+ }));
+ let cc=[],cat="All",qq="",placed=null;
+
+ function renderC(){
+  let cats=["All",...new Set(r.menu.map(x=>x.cat))];
+  let items=r.menu.filter(x=>x.active&&(cat==="All"||x.cat===cat)&&x.name.toLowerCase().includes(qq.toLowerCase()));
+  let sub=cc.reduce((a,x)=>a+x.price*x.qty,0);
+  $("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block;opacity:.75">TABLE ${t.no} • CONNECTED</small></header><main class=wrap>
+  <div class=hero><small>WELCOME</small><h1>Order from your table</h1><p style="margin:0">Your QR is connected to Table ${t.no}.</p></div>
+  <input class=search value="${esc(qq)}" placeholder="Search dishes..." oninput="window.__qrSearch(this.value)">
+  <div class=tabs>${cats.map(c=>`<button class="${cat===c?'on':''}" onclick="window.__qrCat(${JSON.stringify(c)})">${esc(c)}</button>`).join("")}</div>
+  ${items.map(m=>`<div class=citem><div><b>${esc(m.name)}</b><small style="display:block;color:#718096">${esc(m.cat)} • ${esc(m.desc)}</small><strong>${money(m.price)}</strong></div><button class="btn primary" onclick="window.__qrAdd('${m.id}')">ADD</button></div>`).join("")||"<p class=mut>No dishes found.</p>"}</main>
+  ${cc.length?`<div class=cartbar><b>${cc.reduce((a,x)=>a+x.qty,0)} items • ${money(sub)}</b><button class=btn style="float:right;background:#fff;color:#0755ca" onclick=window.__qrCheckout()>VIEW CART</button></div>`:""}</div>`;
+ }
+
+ window.__qrSearch=v=>{qq=v;renderC()};
+ window.__qrCat=v=>{cat=v;renderC()};
+ window.__qrAdd=id=>{let m=r.menu.find(x=>String(x.id)===String(id)),x=cc.find(x=>x.id===id);x?x.qty++:cc.push({...m,qty:1});renderC()};
+
+ window.__qrCheckout=()=>{
+  let sub=cc.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;
+  open(`<button class=close onclick=close()>×</button><h2>Cart • Table ${t.no}</h2>
+  ${cc.map(x=>`<div class=line><span>${esc(x.name)} × ${x.qty}</span><b>${money(x.price*x.qty)}</b></div>`).join("")}
+  <div class=line><span>Subtotal</span><b>${money(sub)}</b></div>
+  <div class=line><span>Tax (${r.tax}%)</span><b>${money(tax)}</b></div>
+  <div class=line><b>Total</b><b>${money(sub+tax)}</b></div>
+  <input id=customerName class=field placeholder="Name (optional)">
+  <textarea id=customerNote class=field placeholder="Special note"></textarea>
+  <button class="btn primary" style="width:100%" onclick=window.__qrPlace()>PLACE ORDER</button>`);
+ };
+
+ window.__qrPlace=()=>{
+  if(r.lat!==null&&r.lat!==undefined&&navigator.geolocation){
+   navigator.geolocation.getCurrentPosition(
+    pos=>finishC(pos.coords.latitude,pos.coords.longitude),
+    ()=>alert("Location permission is required for ordering from this table.")
+   );
+  }else finishC(null,null);
+ };
+
+ async function finishC(lat,lng){
+  if(r.lat!==null&&r.lat!==undefined&&r.lng!==null&&r.lng!==undefined){
+   if(lat===null||lng===null)return alert("Location permission is required.");
+   let d=distance(r.lat,r.lng,lat,lng);
+   if(d>r.range)return alert("You are outside the restaurant's "+r.range+"m ordering range.");
+  }
+  let sub=cc.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;
+  if(!cc.length)return alert("Your cart is empty.");
+  try{
+   const {data,error}=await sb.rpc("place_public_order",{
+    p_restaurant_id:r.id,
+    p_table_id:t.id,
+    p_customer_name:$("customerName").value||null,
+    p_customer_note:$("customerNote").value||null,
+    p_subtotal:sub,
+    p_tax_amount:tax,
+    p_total:sub+tax,
+    p_items:cc.map(x=>({menu_item_id:x.id,item_name:x.name,quantity:x.qty,unit_price:x.price,line_total:x.price*x.qty}))
+   });
+   if(error)throw error;
+   close();
+   placed={id:data.order_id,table:t.no,status:"New",eta:null,total:sub+tax};
+   trackC();
+  }catch(e){alert("Order could not be placed: "+e.message);}
+ }
+
+ function trackC(){
+  $("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block">TABLE ${t.no} • ORDER #${esc(placed.id)}</small></header><main class=wrap><div class=card>
+  <div class=timeline>${["New","Preparing","Ready","Served"].map((x,i)=>`<div class="node ${i===0?'on':''}" id="node-${i}"><div style="width:20px;height:20px;border-radius:50%;margin:auto;background:${i===0?'#19a66a':'#e3e9ef'}"></div>${x}</div>`).join("")}</div>
+  <h2 style="text-align:center">Order received</h2><p class=mut style="text-align:center">Order #${esc(placed.id)} has been sent to the restaurant.</p>
+  </div></main></div>`;
+ }
+
+ renderC();
+}catch(e){
+ $("app").innerHTML=`<div class=wrap><div class=hero><h1>Invalid QR</h1><p>This QR is not connected to a valid restaurant table.</p><small>${esc(e.message||"QR validation failed")}</small></div></div>`;
+ console.error(e);
 }
-renderC();
 }
 
 if(new URLSearchParams(location.search).get("customer"))customer();else if(db.session&&current())owner();else auth();
