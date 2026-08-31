@@ -414,6 +414,7 @@ function closeMobileNav(){
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMobileNav()});
 
 async function owner(){
+ if(__customerMode)return;
  let r=current();
  if(!r){auth();return;}
  $("app").innerHTML=shell(r);
@@ -626,7 +627,8 @@ $("payBtn").onclick=async()=>{
 }
 function open(x){$("modal").innerHTML=`<div class=modal onclick="if(event.target===this)closeModal()"><div class=box>${x}</div></div>`}
 function closeModal(){$("modal").innerHTML=""}
-document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+function close(){closeModal()}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
 
 function distance(a,b,c,d){let R=6371000,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p,x=Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
 async function customer(){
@@ -666,7 +668,7 @@ try{
   let cats=["All",...new Set(r.menu.map(x=>x.cat))];
   let items=r.menu.filter(x=>x.active&&(cat==="All"||x.cat===cat)&&x.name.toLowerCase().includes(qq.toLowerCase()));
   let sub=cc.reduce((a,x)=>a+x.price*x.qty,0);
-  $("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block;opacity:.75">TABLE ${t.no} • CONNECTED</small></header><main class=wrap>
+  $("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block;opacity:.75">TABLE ${t.no} • CUSTOMER MENU</small></header><main class=wrap>
   <div class=hero><small>WELCOME</small><h1>Order from your table</h1><p style="margin:0">Your QR is connected to Table ${t.no}.</p></div>
   <input class=search value="${esc(qq)}" placeholder="Search dishes..." oninput="window.__qrSearch(this.value)">
   <div class=tabs>${cats.map(c=>`<button class="${cat===c?'on':''}" onclick="window.__qrCat(${JSON.stringify(c)})">${esc(c)}</button>`).join("")}</div>
@@ -739,7 +741,17 @@ try{
 }
 }
 
-if(new URLSearchParams(location.search).get("customer"))customer();else if(db.session&&current())owner();else auth();
+const __params=new URLSearchParams(location.search);
+const __customerMode=__params.get("customer")==="1";
+if(__customerMode){
+  // QR/customer mode NEVER boots the owner account, even if this browser
+  // has a previous Supabase/local owner session.
+  customer().catch(e=>console.error(e));
+}else if(db.session&&current()){
+  owner();
+}else{
+  auth();
+}
 </script>
 </body>
 </html>
