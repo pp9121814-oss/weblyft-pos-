@@ -177,6 +177,46 @@ let page="dashboard",cart=[],pcat="All",pq="";
 const SUPABASE_URL="https://gpolqilwfxgssxrixpqe.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_c-xQEXAygNy1J8_0YXNjwg_f2Lu-xJe";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+
+const FREE_OWNER_EMAIL = "panwarbudhsingh@gmail.com";
+
+function currentOwnerEmail(){
+  try{
+    const s=sb.auth.getSession;
+    const local=JSON.parse(localStorage.getItem(KEY)||"null");
+    return String(local?.ownerEmail || current()?.email || "").trim().toLowerCase();
+  }catch(_){ return ""; }
+}
+
+function subscriptionIsActive(r){
+  const email=String(r?.email||currentOwnerEmail()).trim().toLowerCase();
+  if(email===FREE_OWNER_EMAIL)return true;
+
+  const until=r?.subscription?.until;
+  return r?.subscription?.active===true && (!until || new Date(until).getTime()>Date.now());
+}
+
+function subscriptionDaysLeft(r){
+  if(String(r?.email||currentOwnerEmail()).trim().toLowerCase()===FREE_OWNER_EMAIL)return Infinity;
+  if(!r?.subscription?.until)return 0;
+  return Math.max(0,Math.ceil((new Date(r.subscription.until).getTime()-Date.now())/86400000));
+}
+
+function requireSubscription(){
+  const r=current();
+  if(!r)return false;
+  if(subscriptionIsActive(r))return true;
+  open(`<button class="close" onclick="closeModal()">×</button>
+    <h2>Subscription Required</h2>
+    <p>Your WEBLYFT subscription is inactive or expired.</p>
+    <div class="notice"><b>₹3,499 / 365 days</b><br>Renew to unlock POS, Orders, Kitchen, Menu, QR ordering, Inventory and Reports.</div>
+    <button class="btn primary" style="width:100%" onclick="closeModal();go('subscription')">RENEW SUBSCRIPTION</button>
+    <button class="btn outline" style="width:100%;margin-top:7px" onclick="closeModal()">CANCEL</button>`);
+  return false;
+}
+
+const PROTECTED_PAGES = new Set(["pos","orders","kitchen","tables","menu","inventory","reports","customers"]);
+
 async function cloudRegister(name,owner,email,phone,password,tables){
  const emailClean=email.trim().toLowerCase();
  const {data,error}=await sb.auth.signUp({email:emailClean,password});
@@ -362,6 +402,7 @@ async function register(){
   db.session=r.id;
   db.restaurants=db.restaurants.filter(x=>x.id!==r.id);
   db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,subscription:{active:false,until:null},tables:[],menu:[]});
+  db.ownerEmail=r.email||"";
   save(); await loadCloud(current()); owner();
  }catch(e){
   if(e.message==="EMAIL_CONFIRM_REQUIRED"){
@@ -377,6 +418,7 @@ async function login(){
   const r=await cloudLogin(li.value.trim(),lp.value);
   db.session=r.id;db.restaurants=db.restaurants.filter(x=>x.id!==r.id);
   db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,subscription:{active:false,until:null},tables:[],menu:[]});
+  db.ownerEmail=r.email||"";
   save();await loadCloud(current());owner();
  }catch(e){alert("Login failed: "+e.message);}
 }
@@ -394,7 +436,11 @@ function shell(r){
      <button class="mobileNavBtn" aria-label="Open navigation" onclick="openMobileNav()">☰</button>
      <div class=brand>WEB<span>LYFT</span> <small class=mut>Restaurant OS</small></div>
    </div>
-   <div class=topright><b class=small>${esc(r.name)}</b><button class="btn soft" onclick=logout()>Logout</button></div>
+   <div class=topright>
+     <span class="status ${subscriptionIsActive(r)?'ready':'prep'}">${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?'FREE':'SUBSCRIPTION'}</span>
+     <b class=small>${esc(r.name)}</b>
+     <button class="btn soft" onclick=logout()>Logout</button>
+   </div>
  </div>
  <div class=layout><aside class=side><b style="font-size:18px">WEBLYFT</b><small style="display:block">Restaurant Operating System</small>
  <div class=rid><b>${esc(r.name)}</b><br><small>Restaurant ID • ${r.id}</small></div>
@@ -450,7 +496,7 @@ return `<div class=head><div><h1>Dashboard</h1><small class=mut>Live restaurant 
 <div class=cards><div class="card metric"><small>Today's Sales</small><strong>${money(sales)}</strong><span style="color:var(--green)">LIVE</span></div>
 <div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Pending Orders</small><strong>${pending}</strong></div>
 <div class="card metric"><small>Occupied Tables</small><strong>${occ} / ${r.tables.length}</strong></div>
-<div class="card metric sub"><small>WEBLYFT SUBSCRIPTION</small><strong>₹3,499 / YEAR</strong><span>365 days</span></div></div>
+<div class="card metric sub"><small>WEBLYFT SUBSCRIPTION</small><strong>${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?"FREE ACCESS":money(3499)+" / YEAR"}</strong><span>${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?"Permanent owner exemption":subscriptionIsActive(r)?"ACTIVE • "+subscriptionDaysLeft(r)+" days left":"EXPIRED / LOCKED"}</span></div></div>
 <div class=grid3><section class=card><h3>LIVE ORDERS</h3>${o.slice(0,7).map(x=>`<div class=line><b>#${x.id}</b><span>Table ${x.table}</span><span>${money(x.total)}</span><span class="status ${x.status==="New"?"new":x.status==="Preparing"?"prep":x.status==="Ready"?"ready":"served"}">${x.status}</span></div>`).join("")||"<p class=mut>No orders yet.</p>"}</section>
 <section class=card><h3>SALES OVERVIEW</h3><div class=bars>${[30,48,41,63,53,75,88].map((h,i)=>`<div class=bar style="height:${h}%"><span>${"MTWTFSS"[i]}</span></div>`).join("")}</div></section>
 <section class=card><h3>QUICK ACTIONS</h3><div class=quick><button onclick=go('pos')>New Bill</button><button onclick=go('kitchen')>Kitchen</button><button onclick=go('tables')>Tables & QR</button><button onclick=go('menu')>Menu</button></div></section></div>`;
@@ -825,9 +871,11 @@ function settings(){let r=current();return `<div class=head><div><h1>Settings</h
 function getLocation(){if(!navigator.geolocation)return alert("Geolocation unavailable.");navigator.geolocation.getCurrentPosition(p=>{slat.value=p.coords.latitude;slng.value=p.coords.longitude},()=>alert("Allow location permission."))}
 function saveSettings(){let r=current();r.name=sn.value;r.tax=Math.max(0,+st.value||0);r.range=Math.max(1,+sr.value||100);r.lat=slat.value?+slat.value:null;r.lng=slng.value?+slng.value:null;save();owner();alert("Settings saved.")}
 function subscription(){
-let r=current(),active=r.subscription.active&&(!r.subscription.until||r.subscription.until>Date.now());
+let r=current(),isFree=String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL,active=isFree||subscriptionIsActive(r);
 return `<div class=head><div><h1>WEBLYFT Subscription</h1><small class=mut>₹3,499 • 365 days</small></div></div><div class=card style="max-width:680px">
-<div style="background:linear-gradient(135deg,#0872ee,#0755ca);color:#fff;border-radius:12px;padding:25px"><small>WEBLYFT SERVICE PLAN</small><h1>₹3,499 / YEAR</h1><p>365 days • Restaurant OS</p><div class="${active?'successBox':'notice'}">${active?"Subscription ACTIVE":"Subscription not active"}</div><button class="btn" style="background:#fff;color:#0755ca;margin-top:10px" onclick=subscriptionInfo()>PAY / RENEW ₹3,499</button></div>
+<div style="background:linear-gradient(135deg,#0872ee,#0755ca);color:#fff;border-radius:12px;padding:25px"><small>WEBLYFT SERVICE PLAN</small><h1>₹3,499 / YEAR</h1><p>365 days • Restaurant OS</p><div class="${active?'successBox':'notice'}">${active?"Subscription ACTIVE":"Subscription not active"}</div>${isFree
+ ? `<div class="successBox" style="margin-top:10px"><b>FREE OWNER ACCESS</b><br>This owner account is exempt from subscription charges.</div>`
+ : `<button class="btn" style="background:#fff;color:#0755ca;margin-top:10px" onclick=subscriptionInfo()>PAY / RENEW ₹3,499</button>`}</div>
 <p class=mut><b>Payment separation:</b> this subscription is for WEBLYFT service. Customer food-order payments are separate.</p>
 <div class=notice><b>Payment gateway connection:</b> this standalone HTML cannot securely verify a real merchant payment by itself. The merchant ID must be kept server-side and the gateway webhook must confirm payment before activating 365 days.</div></div>`;
 }
