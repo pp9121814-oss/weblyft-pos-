@@ -433,7 +433,16 @@ function toggleSide(force){
   document.body.classList.toggle("menu-open",open);
 }
 function go(p){page=p;toggleSide(false);owner()}
-function render(){let f={dashboard,pos,orders,kitchen,tables,menu,inventory,reports,customers,settings,subscription}[page];let out=f();if(out instanceof Promise)out.then(x=>main.innerHTML=x);else main.innerHTML=out}
+function render(){
+ let f={dashboard,pos,orders,kitchen,tables,menu,inventory,reports,customers,settings,subscription}[page];
+ let out=f();
+ if(out instanceof Promise){
+   out.then(x=>main.innerHTML=x);
+ }else{
+   main.innerHTML=out;
+   if(page==="menu")renderMenuCloud();
+ }
+}
 function getOrders(){return db.orders.filter(o=>o.rid===current().id).sort((a,b)=>b.id-a.id)}
 function dashboard(){
 let r=current(),o=getOrders(),sales=o.reduce((a,x)=>a+x.total,0),pending=o.filter(x=>!["Ready","Served"].includes(x.status)).length,occ=r.tables.filter(t=>t.status==="Occupied").length;
@@ -555,38 +564,261 @@ open(`<button class=close onclick=closeModal()>×</button><h2>Table ${n} QR</h2>
 setTimeout(()=>{let q=$("qrcode");if(q&&window.QRCode)new QRCode(q,{text:url,width:260,height:260,colorDark:"#06294c",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.H})},50);
 }
 function menu(){
-let r=current();return `<div class=head><div><h1>Menu Management</h1><small class=mut>Customer-facing menu</small></div><button class="btn primary" onclick=addMenu()>+ ADD ITEM</button></div><div class=card>
-${r.menu.map(m=>`<div class=line><span><b>${esc(m.name)}</b><small style="display:block;color:#718096">${esc(m.cat)} • ${money(m.price)} • ${esc(m.desc)}</small></span><span><span class="status ${m.active?'ready':'served'}">${m.active?'LIVE':'OFF'}</span> <button class="btn soft" onclick="toggleMenu('${m.id}')>Toggle</button> <button class="btn outline" onclick="editMenu('${m.id}')>Edit</button></span></div>`).join("")}</div>`;
+ let r=current();
+ return `<div class=head>
+   <div><h1>Menu Management</h1><small class=mut>Cloud-synced customer menu</small></div>
+   <button class="btn primary" onclick="addMenu()">+ ADD ITEM</button>
+ </div>
+ <div class=card id=menuList><p class=mut>Loading menu…</p></div>`;
 }
-function addMenu(id){let r=current(),m=id?r.menu.find(x=>x.id===id):{name:"",cat:"Starters",desc:"",price:0,active:true};open(`<button class=close onclick=closeModal()>×</button><h2>${id?"Edit":"Add"} Menu Item</h2><input class=field id=mn value="${esc(m.name)}" placeholder="Item name"><input class=field id=mc value="${esc(m.cat)}" placeholder="Category"><input class=field id=mp type=number value="${m.price}" placeholder="Price"><textarea class=field id=md placeholder="Description">${esc(m.desc)}</textarea><button class="btn primary" onclick=saveMenu(${id||0})>SAVE ITEM</button>`)}
-function editMenu(id){addMenu(id)}
-async function saveMenu(id){
- let r=current(),m={name:mn.value.trim(),cat:mc.value.trim()||"Other",price:+mp.value||0,desc:md.value.trim(),active:true};
- if(!m.name)return alert("Item name required.");
+
+async function renderMenuCloud(){
+ const r=current(), box=$("menuList");
+ if(!r || !box)return;
  try{
-  if(id){
-   const old=r.menu.find(x=>String(x.id)===String(id));
-   if(!old)throw new Error("Menu item not found.");
-   const {data,error}=await sb.from("menu_items").update({name:m.name,description:m.desc,price:m.price,is_available:m.active}).eq("id",id).eq("restaurant_id",r.id).select("*").single();
+   const {data,error}=await sb.from("menu_items")
+     .select("*")
+     .eq("restaurant_id",r.id)
+     .order("created_at",{ascending:true});
    if(error)throw error;
-   Object.assign(old,{id:data.id,name:data.name,cat:m.cat,desc:data.description||"",price:Number(data.price||0),active:!!data.is_available});
-  }else{
-   const {data,error}=await sb.from("menu_items").insert({restaurant_id:r.id,category_id:null,name:m.name,description:m.desc,price:m.price,is_available:m.active}).select("*").single();
-   if(error)throw error;
-   r.menu.push({id:data.id,name:data.name,cat:m.cat,desc:data.description||"",price:Number(data.price||0),active:!!data.is_available});
-  }
-  save();close();await loadCloud(r);render();
- }catch(e){alert("Menu item could not be saved: "+(e.message||e));}
+
+   r.menu=(data||[]).map(x=>({
+     id:x.id,
+     name:x.name,
+     cat:x.category_name||"Menu",
+     desc:x.description||"",
+     price:Number(x.price||0),
+     active:x.is_available!==false,
+     image_url:x.image_url||"",
+     category_id:x.category_id||null
+   }));
+   save();
+
+   box.innerHTML=(data||[]).map(x=>`
+    <div class=line>
+      <span>
+        <b>${esc(x.name)}</b>
+        <small style="display:block;color:#718096">
+          ${esc(x.category_name||"Menu")} • ${money(x.price)}${x.description?` • ${esc(x.description)}`:""}
+        </small>
+      </span>
+      <span>
+        <span class="status ${x.is_available!==false?'ready':'served'}">${x.is_available!==false?'LIVE':'OFF'}</span>
+        <button class="btn soft" onclick="toggleMenu('${x.id}')">${x.is_available!==false?'OFF':'LIVE'}</button>
+        <button class="btn outline" onclick="editMenu('${x.id}')">Edit</button>
+      </span>
+    </div>`).join("") || `<p class=mut>No menu items yet. Add your first item.</p>`;
+ }catch(e){
+   box.innerHTML=`<div class=notice>Could not load menu: ${esc(e.message||e)}</div>`;
+ }
 }
+
+async function addMenu(id){
+ let r=current(), m=id ? r.menu.find(x=>String(x.id)===String(id)) : null;
+
+ if(id && !m){
+   const {data,error}=await sb.from("menu_items").select("*").eq("id",id).eq("restaurant_id",r.id).single();
+   if(error)return alert("Could not load item: "+error.message);
+   m={
+     id:data.id,name:data.name,cat:data.category_name||"Menu",
+     desc:data.description||"",price:Number(data.price||0),
+     active:data.is_available!==false,image_url:data.image_url||""
+   };
+ }
+ m=m||{name:"",cat:"Starters",desc:"",price:0,active:true,image_url:""};
+
+ open(`<button class="close" onclick="closeModal()">×</button>
+   <h2>${id?"Edit":"Add"} Menu Item</h2>
+   <input class=field id=mn value="${esc(m.name)}" placeholder="Item name">
+   <input class=field id=mc value="${esc(m.cat)}" placeholder="Category">
+   <input class=field id=mp type=number min=0 step=0.01 value="${m.price}" placeholder="Price">
+   <textarea class=field id=md placeholder="Description">${esc(m.desc)}</textarea>
+   <input class=field id=mi value="${esc(m.image_url||"")}" placeholder="Image URL (optional)">
+   <button class="btn primary" id=saveMenuBtn onclick="saveMenuCloud('${id?String(id):""}')">${id?"UPDATE ITEM":"SAVE ITEM"}</button>`);
+}
+
+async function saveMenuCloud(id){
+ const r=current(), btn=$("saveMenuBtn");
+ const name=$("mn").value.trim();
+ const category=$("mc").value.trim()||"Other";
+ const price=Math.max(0,Number($("mp").value)||0);
+ const desc=$("md").value.trim();
+ const image=$("mi").value.trim()||null;
+
+ if(!name)return alert("Item name required.");
+
+ if(btn){
+   btn.disabled=true;
+   btn.textContent=id?"UPDATING…":"SAVING…";
+ }
+
+ try{
+   if(id){
+     const {error}=await sb.from("menu_items").update({
+       name,
+       description:desc,
+       image_url:image,
+       price,
+       is_available:true
+     }).eq("id",id).eq("restaurant_id",r.id);
+     if(error)throw error;
+   }else{
+     const {data,error}=await sb.from("menu_items").insert({
+       restaurant_id:r.id,
+       category_id:null,
+       name,
+       description:desc,
+       image_url:image,
+       price,
+       is_available:true
+     }).select("*").single();
+     if(error)throw error;
+   }
+
+   closeModal();
+   await loadCloud(r);
+   await renderMenuCloud();
+ }catch(e){
+   alert("Menu save failed: "+(e.message||e));
+   if(btn){
+     btn.disabled=false;
+     btn.textContent=id?"UPDATE ITEM":"SAVE ITEM";
+   }
+ }
+}
+
+async function editMenu(id){
+ await addMenu(id);
+}
+
 async function toggleMenu(id){
- let r=current(),m=r.menu.find(x=>String(x.id)===String(id));if(!m)return;
+ const r=current();
+ const item=r.menu.find(x=>String(x.id)===String(id));
+ if(!item)return;
+
  try{
-  const {data,error}=await sb.from("menu_items").update({is_available:!m.active}).eq("id",id).eq("restaurant_id",r.id).select("*").single();
-  if(error)throw error;
-  m.active=!!data.is_available;save();render();
- }catch(e){alert("Menu item could not be updated: "+(e.message||e));}
+   const {error}=await sb.from("menu_items")
+     .update({is_available:!item.active})
+     .eq("id",id)
+     .eq("restaurant_id",r.id);
+   if(error)throw error;
+
+   await loadCloud(r);
+   await renderMenuCloud();
+ }catch(e){
+   alert("Menu status update failed: "+(e.message||e));
+ }
 }
-function inventory(){return `<div class=head><div><h1>Inventory</h1><small class=mut>Stock workspace</small></div></div><div class=card><h3>Inventory foundation</h3><p>Use this module for ingredients, stock entries, low-stock thresholds and purchase records.</p><p class=mut>For true multi-device inventory sync, this HTML build must be connected to a cloud backend.</p></div>`}
+
+
+function inventory(){
+ const r=current();
+ if(!r.inventory)r.inventory=[];
+ return `<div class=head>
+   <div><h1>Inventory</h1><small class=mut>Stock • low-stock alerts • purchases</small></div>
+   <button class="btn primary" onclick="inventoryAdd()">+ ADD STOCK ITEM</button>
+ </div>
+ <div class=cards>
+   <div class="card metric"><small>Stock Items</small><strong>${r.inventory.length}</strong></div>
+   <div class="card metric"><small>Low Stock</small><strong>${r.inventory.filter(x=>x.qty<=x.min).length}</strong></div>
+   <div class="card metric"><small>Total Units</small><strong>${r.inventory.reduce((a,x)=>a+(+x.qty||0),0)}</strong></div>
+   <div class="card metric"><small>Stock Value</small><strong>${money(r.inventory.reduce((a,x)=>a+(+x.qty||0)*(+x.cost||0),0))}</strong></div>
+ </div>
+ <div class=card style="margin-top:10px">
+   <div style="overflow:auto">
+    <table class=table>
+      <tr><th>ITEM</th><th>CATEGORY</th><th>QTY</th><th>MIN</th><th>COST</th><th>STATUS</th><th>ACTION</th></tr>
+      ${r.inventory.map(x=>`
+        <tr>
+          <td><b>${esc(x.name)}</b></td>
+          <td>${esc(x.cat||"General")}</td>
+          <td>${x.qty} ${esc(x.unit||"pcs")}</td>
+          <td>${x.min}</td>
+          <td>${money(x.cost)}</td>
+          <td><span class="status ${x.qty<=x.min?'prep':'ready'}">${x.qty<=x.min?'LOW':'OK'}</span></td>
+          <td>
+            <button class="btn soft" onclick="inventoryAdjust('${x.id}',1)">+1</button>
+            <button class="btn soft" onclick="inventoryAdjust('${x.id}',-1)">−1</button>
+            <button class="btn outline" onclick="inventoryEdit('${x.id}')">Edit</button>
+          </td>
+        </tr>`).join("") || `<tr><td colspan=7 class=mut>No stock items yet.</td></tr>`}
+    </table>
+   </div>
+ </div>`;
+}
+
+function inventoryAdd(){
+ open(`<button class="close" onclick="closeModal()">×</button>
+   <h2>Add Stock Item</h2>
+   <input class=field id=inm placeholder="Item name">
+   <input class=field id=inc placeholder="Category (e.g. Dairy)">
+   <input class=field id=inq type=number min=0 step=0.01 value="0" placeholder="Current quantity">
+   <input class=field id=inmin type=number min=0 step=0.01 value="5" placeholder="Low-stock minimum">
+   <input class=field id=incost type=number min=0 step=0.01 value="0" placeholder="Cost per unit">
+   <input class=field id=inunit value="pcs" placeholder="Unit (pcs, kg, litre...)">
+   <button class="btn primary" style="width:100%" onclick="inventorySave()">SAVE STOCK ITEM</button>`);
+}
+
+function inventorySave(){
+ const r=current();
+ const name=$("inm").value.trim();
+ if(!name)return alert("Stock item name required.");
+ const item={
+   id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),
+   name,
+   cat:$("inc").value.trim()||"General",
+   qty:Math.max(0,Number($("inq").value)||0),
+   min:Math.max(0,Number($("inmin").value)||0),
+   cost:Math.max(0,Number($("incost").value)||0),
+   unit:$("inunit").value.trim()||"pcs",
+   updated:Date.now()
+ };
+ r.inventory=r.inventory||[];
+ r.inventory.push(item);
+ save();
+ closeModal();
+ render();
+}
+
+function inventoryEdit(id){
+ const r=current(),x=(r.inventory||[]).find(i=>String(i.id)===String(id));
+ if(!x)return;
+ open(`<button class="close" onclick="closeModal()">×</button>
+   <h2>Edit Stock Item</h2>
+   <input class=field id=inm value="${esc(x.name)}" placeholder="Item name">
+   <input class=field id=inc value="${esc(x.cat||"General")}" placeholder="Category">
+   <input class=field id=inq type=number min=0 step=0.01 value="${x.qty}" placeholder="Current quantity">
+   <input class=field id=inmin type=number min=0 step=0.01 value="${x.min}" placeholder="Low-stock minimum">
+   <input class=field id=incost type=number min=0 step=0.01 value="${x.cost}" placeholder="Cost per unit">
+   <input class=field id=inunit value="${esc(x.unit||"pcs")}" placeholder="Unit">
+   <button class="btn primary" style="width:100%" onclick="inventoryUpdate('${x.id}')">UPDATE STOCK ITEM</button>`);
+}
+
+function inventoryUpdate(id){
+ const r=current(),x=(r.inventory||[]).find(i=>String(i.id)===String(id));
+ if(!x)return;
+ const name=$("inm").value.trim();
+ if(!name)return alert("Stock item name required.");
+ x.name=name;
+ x.cat=$("inc").value.trim()||"General";
+ x.qty=Math.max(0,Number($("inq").value)||0);
+ x.min=Math.max(0,Number($("inmin").value)||0);
+ x.cost=Math.max(0,Number($("incost").value)||0);
+ x.unit=$("inunit").value.trim()||"pcs";
+ x.updated=Date.now();
+ save();
+ closeModal();
+ render();
+}
+
+function inventoryAdjust(id,delta){
+ const r=current(),x=(r.inventory||[]).find(i=>String(i.id)===String(id));
+ if(!x)return;
+ x.qty=Math.max(0,(+x.qty||0)+delta);
+ x.updated=Date.now();
+ save();
+ render();
+}
 function reports(){let o=getOrders(),sales=o.reduce((a,x)=>a+x.total,0),tax=o.reduce((a,x)=>a+x.tax,0);return `<div class=head><div><h1>Reports</h1><small class=mut>Restaurant performance</small></div></div><div class=cards><div class="card metric"><small>Total Sales</small><strong>${money(sales)}</strong></div><div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Tax Collected</small><strong>${money(tax)}</strong></div><div class="card metric"><small>Average Order</small><strong>${money(o.length?sales/o.length:0)}</strong></div><div class="card metric"><small>Tables</small><strong>${current().tables.length}</strong></div></div>`}
 function customers(){let o=getOrders(),names=[...new Set(o.map(x=>x.name).filter(Boolean))];return `<div class=head><div><h1>Customers</h1><small class=mut>Customer activity</small></div></div><div class=card>${names.length?names.map(n=>`<div class=line><b>${esc(n)}</b><span>Customer</span></div>`).join(""):"<p class=mut>No named customers yet. Customer names are optional at QR checkout.</p>"}</div>`}
 function settings(){let r=current();return `<div class=head><div><h1>Settings</h1><small class=mut>Tax + geofence</small></div></div><div class=card><input class=field id=sn value="${esc(r.name)}" placeholder="Restaurant name"><input class=field id=st type=number value="${r.tax}" placeholder="Tax %"><input class=field id=sr type=number value="${r.range}" placeholder="Ordering range in meters"><input class=field id=slat type=number step=any value="${r.lat??""}" placeholder="Restaurant latitude"><input class=field id=slng type=number step=any value="${r.lng??""}" placeholder="Restaurant longitude"><button class="btn soft" onclick=getLocation()>USE CURRENT LOCATION</button> <button class="btn primary" onclick=saveSettings()>SAVE SETTINGS</button><p class=mut>Customer orders can be blocked outside the configured radius.</p></div>`}
