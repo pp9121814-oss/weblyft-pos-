@@ -101,10 +101,67 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:active{tr
 @media(max-width:1050px){.cards{grid-template-columns:repeat(3,1fr)}.grid3{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.top{height:58px;padding:0 10px}.layout{display:block}.side{display:none}.main{padding:10px}.cards{grid-template-columns:1fr 1fr;gap:7px}.card{padding:12px}.grid3,.pos,.kanban{grid-template-columns:1fr}.foodgrid{grid-template-columns:1fr 1fr}.tgrid{grid-template-columns:1fr 1fr}.head h1{font-size:20px}.metric strong{font-size:20px}.topright .btn{padding:8px}.customer .wrap{padding:10px 10px 90px}.hero h1{font-size:21px}}
 @media(max-width:380px){.cards{grid-template-columns:1fr}.foodgrid{grid-template-columns:1fr}}
+
+/* MOBILE NAVIGATION — works at every small-screen width */
+.mobileNavBtn{
+  display:none;border:0;background:#eaf1f8;color:#173b5d;border-radius:10px;
+  width:42px;height:42px;font-size:24px;font-weight:900;align-items:center;justify-content:center;
+}
+.mobileShade{
+  display:none;position:fixed;inset:0;background:#00172d80;z-index:90;
+}
+.mobileDrawer{
+  display:none;position:fixed;left:0;top:0;bottom:0;width:min(310px,86vw);
+  background:linear-gradient(180deg,#06294c,#041d35);color:#fff;z-index:100;
+  padding:18px 14px;overflow:auto;box-shadow:12px 0 40px #00172d40;
+}
+.mobileDrawer .mbrand{font-weight:950;font-size:22px;margin:4px 6px 18px}
+.mobileDrawer .mbrand span{color:#3fa9ff}
+.mobileDrawer .mnav button{
+  display:block;width:100%;text-align:left;border:0;background:transparent;color:#dbe7f2;
+  border-radius:9px;padding:12px 11px;margin:3px 0;font-weight:800;
+}
+.mobileDrawer .mnav button:hover,.mobileDrawer .mnav button.active{background:#0872ee;color:#fff}
+.mobileDrawer .mclose{
+  float:right;width:34px;height:34px;border:0;border-radius:50%;
+  background:#ffffff18;color:#fff;font-size:20px;font-weight:900;
+}
+.mobileOpen .mobileDrawer{display:block}
+.mobileOpen .mobileShade{display:block}
+@media(max-width:700px){
+  .mobileNavBtn{display:flex}
+  .top{position:sticky;top:0}
+  .top .brand small{display:none}
+  .topright{gap:6px}
+  .topright .small{max-width:105px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .main{padding:10px}
+  .head{align-items:flex-start;flex-wrap:wrap}
+  .head .btn{width:auto}
+  .foodgrid{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr 1fr}
+  .table{display:block;overflow-x:auto;white-space:nowrap}
+  .pos{grid-template-columns:1fr}
+  .kanban{grid-template-columns:1fr}
+}
+@media(max-width:420px){
+  .cards{grid-template-columns:1fr}
+  .top{padding:0 8px}
+  .brand{font-size:20px}
+  .topright .small{display:none}
+  .main{padding:8px}
+  .card{padding:11px}
+  .btn{padding:10px 12px}
+}
+
 </style>
 </head>
 <body>
-<div id="app"></div><div id="modal"></div>
+<div id="app"></div><div id="modal"></div><div id="mobileShade" class="mobileShade" onclick="closeMobileNav()"></div>
+<div id="mobileDrawer" class="mobileDrawer">
+  <button class="mclose" onclick="closeMobileNav()">×</button>
+  <div class="mbrand">WEB<span>LYFT</span></div>
+  <div class="mnav" id="mobileNav"></div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* WEBLYFT FINAL HTML APP
@@ -145,16 +202,123 @@ async function cloudLogin(email,password){
  return r;
 }
 async function loadCloud(r){
- const [t,m,c]=await Promise.all([
+ const [t,m,c,o,oi]=await Promise.all([
   sb.from("restaurant_tables").select("*").eq("restaurant_id",r.id).order("table_number"),
   sb.from("menu_items").select("*").eq("restaurant_id",r.id).order("created_at"),
-  sb.from("subscriptions").select("*").eq("restaurant_id",r.id).order("created_at",{ascending:false}).limit(1)
+  sb.from("subscriptions").select("*").eq("restaurant_id",r.id).order("created_at",{ascending:false}).limit(1),
+  sb.from("orders").select("*").eq("restaurant_id",r.id).order("created_at",{ascending:false}),
+  sb.from("order_items").select("*")
  ]);
  if(t.error)throw t.error;if(m.error)throw m.error;if(c.error)throw c.error;
- r.code=r.code||r.restaurant_code||null;r.tables=(t.data||[]).map(x=>({no:x.table_number,id:x.id,token:x.qr_token,status:x.status==="occupied"?"Occupied":x.status==="reserved"?"Reserved":"Available"}));
- r.menu=(m.data||[]).map(x=>({id:x.id,name:x.name,cat:"Menu",desc:x.description||"",price:Number(x.price),active:x.is_available}));
- const s=c.data?.[0];r.subscription={active:s?.status==="active",until:s?.expires_at?new Date(s.expires_at).getTime():null};save();
+ if(o.error)throw o.error;
+ if(oi.error)throw oi.error;
+
+ r.code=r.code||r.restaurant_code||null;
+ r.tables=(t.data||[]).map(x=>({
+  no:x.table_number,id:x.id,token:x.qr_token,
+  status:x.status==="occupied"?"Occupied":x.status==="reserved"?"Reserved":"Available"
+ }));
+ r.menu=(m.data||[]).map(x=>({
+  id:x.id,name:x.name,cat:"Menu",desc:x.description||"",
+  price:Number(x.price||0),active:!!x.is_available
+ }));
+
+ const tableMap={};
+ (t.data||[]).forEach(tb=>tableMap[String(tb.id)]=tb.table_number);
+ const itemByOrder={};
+ (oi.data||[]).forEach(i=>{
+   const key=String(i.order_id);
+   (itemByOrder[key] ||= []).push({
+     name:i.item_name||i.name||"Item",
+     price:Number(i.unit_price||i.price||0),
+     qty:Number(i.quantity||i.qty||1)
+   });
+ });
+
+ const statusMap={
+  new:"New",pending:"New",confirmed:"New",
+  preparing:"Preparing",ready:"Ready",served:"Served",
+  completed:"Served",cancelled:"Cancelled"
+ };
+
+ db.orders=(o.data||[]).map(x=>({
+   id:x.order_number ?? x.id,
+   cloudId:x.id,
+   rid:r.id,
+   table:x.table_number ?? tableMap[String(x.table_id)] ?? null,
+   tableId:x.table_id ?? null,
+   items:itemByOrder[String(x.id)]||[],
+   subtotal:Number(x.subtotal||0),
+   tax:Number(x.tax_amount ?? x.tax ?? 0),
+   total:Number(x.total||0),
+   status:statusMap[String(x.status||"new").toLowerCase()]||String(x.status||"New"),
+   eta:x.eta_minutes ?? x.eta ?? null,
+   started:x.started_at?new Date(x.started_at).getTime():null,
+   created:x.created_at?new Date(x.created_at).getTime():Date.now(),
+   source:x.source||"QR",
+   customerName:x.customer_name||""
+ }));
+
+ const s=c.data?.[0];
+ r.subscription={
+  active:s?.status==="active",
+  until:s?.expires_at?new Date(s.expires_at).getTime():null
+ };
+ save();
 }
+
+async function loadCloudOrders(r){
+ const [o,oi]=await Promise.all([
+  sb.from("orders").select("*").eq("restaurant_id",r.id).order("created_at",{ascending:false}),
+  sb.from("order_items").select("*")
+ ]);
+ if(o.error)throw o.error;if(oi.error)throw oi.error;
+
+ const tableMap={};
+ const {data:tableRows,error:tableError}=await sb.from("restaurant_tables").select("id,table_number").eq("restaurant_id",r.id);
+ if(tableError)throw tableError;
+ (tableRows||[]).forEach(tb=>tableMap[String(tb.id)]=tb.table_number);
+ const byOrder={};
+ (oi.data||[]).forEach(i=>{
+   const key=String(i.order_id);
+   (byOrder[key] ||= []).push({
+     name:i.item_name||i.name||"Item",
+     price:Number(i.unit_price||i.price||0),
+     qty:Number(i.quantity||i.qty||1)
+   });
+ });
+
+ const statusMap={new:"New",pending:"New",confirmed:"New",preparing:"Preparing",ready:"Ready",served:"Served",completed:"Served",cancelled:"Cancelled"};
+ db.orders=(o.data||[]).map(x=>({
+   id:x.order_number ?? x.id,cloudId:x.id,rid:r.id,
+   table:x.table_number ?? tableMap[String(x.table_id)] ?? null,tableId:x.table_id ?? null,
+   items:byOrder[String(x.id)]||[],
+   subtotal:Number(x.subtotal||0),
+   tax:Number(x.tax_amount ?? x.tax ?? 0),
+   total:Number(x.total||0),
+   status:statusMap[String(x.status||"new").toLowerCase()]||String(x.status||"New"),
+   eta:x.eta_minutes ?? x.eta ?? null,
+   started:x.started_at?new Date(x.started_at).getTime():null,
+   created:x.created_at?new Date(x.created_at).getTime():Date.now(),
+   source:x.source||"QR",
+   customerName:x.customer_name||""
+ }));
+ save();
+}
+
+let cloudOrderTimer=null;
+function startOrderSync(){
+ clearInterval(cloudOrderTimer);
+ cloudOrderTimer=setInterval(async()=>{
+   const r=current();
+   if(!r || !["dashboard","orders","kitchen"].includes(page))return;
+   try{
+     await loadCloudOrders(r);
+     render();
+   }catch(e){console.warn("Order sync:",e)}
+ },4000);
+}
+
 
 const $=id=>document.getElementById(id);
 const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
@@ -220,15 +384,49 @@ async function logout(){await sb.auth.signOut();db.session=null;save();auth();}
 function current(){return db.restaurants.find(r=>r.id===db.session)}
 const nav=[["dashboard","▦","Dashboard"],["pos","▣","POS / Billing"],["orders","◉","Orders"],["kitchen","♨","Kitchen / KOT"],["tables","▦","Tables & QR"],["menu","☷","Menu"],["inventory","◒","Inventory"],["reports","◔","Reports"],["customers","♙","Customers"],["settings","⚙","Settings"],["subscription","◆","Subscription"]];
 function shell(r){
-return `<div class=top><button class="mobile-menu-btn" aria-label="Open navigation" onclick="toggleSide()">☰</button><div class=brand>WEB<span>LYFT</span> <small class=mut>Restaurant OS</small></div>
-<div class=topright><b class=small>${esc(r.name)}</b><button class="btn soft" onclick=logout()>Logout</button></div></div>
-<div class="side-backdrop" onclick="toggleSide(false)"></div>
-<div class=layout><aside class=side><b style="font-size:18px">WEBLYFT</b><small style="display:block">Restaurant Operating System</small>
-<div class=rid><b>${esc(r.name)}</b><br><small>Restaurant ID • ${r.id}</small></div>
-<div class=nav>${nav.map(n=>`<button class="${page===n[0]?"active":""}" onclick="go('${n[0]}')">${n[1]} &nbsp; ${n[2]}</button>`).join("")}</div>
-</aside><main class=main id=main></main></div>`;
+ const navHtml=nav.map(n=>`<button class="${page===n[0]?"active":""}" onclick="go('${n[0]}');closeMobileNav()">${n[1]} &nbsp; ${n[2]}</button>`).join("");
+ setTimeout(()=>{
+   const mn=document.getElementById("mobileNav");
+   if(mn)mn.innerHTML=navHtml;
+ },0);
+ return `<div class=top>
+   <div style="display:flex;align-items:center;gap:8px">
+     <button class="mobileNavBtn" aria-label="Open navigation" onclick="openMobileNav()">☰</button>
+     <div class=brand>WEB<span>LYFT</span> <small class=mut>Restaurant OS</small></div>
+   </div>
+   <div class=topright><b class=small>${esc(r.name)}</b><button class="btn soft" onclick=logout()>Logout</button></div>
+ </div>
+ <div class=layout><aside class=side><b style="font-size:18px">WEBLYFT</b><small style="display:block">Restaurant Operating System</small>
+ <div class=rid><b>${esc(r.name)}</b><br><small>Restaurant ID • ${r.id}</small></div>
+ <div class=nav>${navHtml}</div>
+ </aside><main class=main id=main></main></div>`;
 }
-async function owner(){let r=current();$("app").innerHTML=shell(r);try{await loadCloud(r);$("app").innerHTML=shell(r);render()}catch(e){render();console.warn(e)}}
+function openMobileNav(){
+ document.body.classList.add("mobileOpen");
+ const d=document.getElementById("mobileDrawer");
+ if(d)d.setAttribute("aria-hidden","false");
+}
+function closeMobileNav(){
+ document.body.classList.remove("mobileOpen");
+ const d=document.getElementById("mobileDrawer");
+ if(d)d.setAttribute("aria-hidden","true");
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMobileNav()});
+
+async function owner(){
+ let r=current();
+ if(!r){auth();return;}
+ $("app").innerHTML=shell(r);
+ try{
+   await loadCloud(r);
+   $("app").innerHTML=shell(r);
+   render();
+   startOrderSync();
+ }catch(e){
+   render();
+   console.warn(e);
+ }
+}
 function toggleSide(force){
   const open=typeof force==="boolean"?force:!document.body.classList.contains("menu-open");
   document.body.classList.toggle("menu-open",open);
@@ -251,7 +449,7 @@ function pos(){
 let r=current(),cats=["All",...new Set(r.menu.map(x=>x.cat))],items=r.menu.filter(x=>x.active&&(pcat==="All"||x.cat===pcat)&&x.name.toLowerCase().includes(pq.toLowerCase())),sub=cart.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;
 return `<div class=head><div><h1>POS / Billing</h1><small class=mut>Manual order → KOT</small></div></div><div class=pos>
 <section class=card><input class=search value="${esc(pq)}" placeholder="Search menu..." oninput="pq=this.value;render()"><div class=tabs>${cats.map(c=>`<button class="${pcat===c?'on':''}" onclick="pcat='${esc(c)}';render()">${esc(c)}</button>`).join("")}</div>
-<div class=foodgrid>${items.map(m=>`<button class=food onclick="addCart('${m.id}')><b>${esc(m.name)}</b><small>${esc(m.cat)}</small><strong>${money(m.price)}</strong></button>`).join("")}</div></section>
+<div class=foodgrid>${items.map(m=>`<button class=food onclick="addCart('${m.id}')"><b>${esc(m.name)}</b><small>${esc(m.cat)}</small><strong>${money(m.price)}</strong></button>`).join("")}</div></section>
 <section class=card><div class=line><b>TABLE</b><select id=pt>${r.tables.map(t=>`<option value="${t.no}">Table ${t.no}</option>`).join("")}</select></div>
 ${cart.map(x=>`<div class=line><span>${esc(x.name)} × ${x.qty}</span><b>${money(x.price*x.qty)}</b></div>`).join("")||"<p class=mut>Cart empty.</p>"}
 <div class=line><span>Subtotal</span><b>${money(sub)}</b></div><div class=line><span>Tax (${r.tax}%)</span><b>${money(tax)}</b></div>
@@ -259,18 +457,86 @@ ${cart.map(x=>`<div class=line><span>${esc(x.name)} × ${x.qty}</span><b>${money
 <button class="btn primary" style="width:100%;margin-top:10px" onclick=sendPOS()>SEND TO KITCHEN</button></section></div>`;
 }
 function addCart(id){let m=current().menu.find(x=>x.id===id),x=cart.find(x=>x.id===id);x?x.qty++:cart.push({...m,qty:1});render()}
-function sendPOS(){if(!cart.length)return alert("Cart is empty.");let r=current(),sub=cart.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100,o={id:Date.now(),rid:r.id,table:+pt.value,items:cart.map(x=>({name:x.name,price:x.price,qty:x.qty})),subtotal:sub,tax,total:sub+tax,status:"New",eta:null,created:Date.now(),source:"POS"};db.orders.push(o);let t=r.tables.find(t=>t.no===+pt.value);if(t)t.status="Occupied";save();cart=[];go("orders")}
+async function sendPOS(){
+ if(!cart.length)return alert("Cart is empty.");
+ const r=current(), tableNo=+pt.value;
+ const table=r.tables.find(t=>t.no===tableNo);
+ if(!table?.id)return alert("Selected table is not connected to Supabase.");
+
+ const sub=cart.reduce((a,x)=>a+x.price*x.qty,0);
+ const tax=sub*r.tax/100;
+ const total=sub+tax;
+ const payload={
+  restaurant_id:r.id,
+  table_id:table.id,
+  source:"pos",
+  status:"new",
+  subtotal:sub,
+  tax_amount:tax,
+  total:total,
+  customer_name:null,
+  customer_note:null
+ };
+ try{
+  const {data,error}=await sb.from("orders").insert(payload).select("*").single();
+  if(error)throw error;
+  const items=cart.map(x=>({
+    order_id:data.id,
+    menu_item_id:x.id,
+    item_name:x.name,
+    quantity:x.qty,
+    unit_price:x.price,
+    line_total:x.price*x.qty
+  }));
+  const {error:ie}=await sb.from("order_items").insert(items);
+  if(ie)throw ie;
+  await sb.from("restaurant_tables").update({status:"occupied"}).eq("id",table.id).eq("restaurant_id",r.id);
+  cart=[];
+  await loadCloudOrders(r);
+  startOrderSync();
+  go("orders");
+ }catch(e){
+  alert("Order could not be sent: "+(e.message||e));
+ }
+}
 function orders(){
 let o=getOrders();return `<div class=head><div><h1>Orders</h1><small class=mut>Customer QR + POS orders</small></div></div><div class=card><table class=table><tr><th>ORDER</th><th>TABLE</th><th>ITEMS</th><th>TOTAL</th><th>STATUS</th><th>ACTION</th></tr>
 ${o.map(x=>`<tr><td>#${x.id}</td><td>${x.table}</td><td>${x.items.map(i=>esc(i.name)+" × "+i.qty).join(", ")}</td><td>${money(x.total)}</td><td><span class="status ${x.status==="New"?"new":x.status==="Preparing"?"prep":x.status==="Ready"?"ready":"served"}">${x.status}</span></td><td>
-${x.status==="New"?`<button class="btn success" onclick=accept(${x.id})>ACCEPT</button>`:x.status==="Preparing"?`<button class="btn primary" onclick="statusOrder(${x.id},'Ready')">READY</button>`:x.status==="Ready"?`<button class="btn soft" onclick="statusOrder(${x.id},'Served')">SERVED</button>`:""}</td></tr>`).join("")||"<tr><td colspan=6>No orders</td></tr>"}</table></div>`;
+${x.status==="New"?`<button class="btn success" onclick="accept('${esc(String(x.cloudId||x.id))}')">ACCEPT</button>`:x.status==="Preparing"?`<button class="btn primary" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Ready')">READY</button>`:x.status==="Ready"?`<button class="btn soft" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Served')">SERVED</button>`:""}</td></tr>`).join("")||"<tr><td colspan=6>No orders</td></tr>"}</table></div>`;
 }
-function accept(id){let x=db.orders.find(o=>o.id===id),eta=prompt("Chef preparation time (minutes)","20");if(eta===null)return;x.status="Preparing";x.eta=Math.max(1,+eta||20);x.started=Date.now();save();go("kitchen")}
-function statusOrder(id,s){let x=db.orders.find(o=>o.id===id);x.status=s;if(s==="Served"){let r=current(),t=r.tables.find(t=>t.no===x.table);if(t)t.status="Available"}save();render()}
+async function accept(id){
+ let x=getOrders().find(o=>String(o.id)===String(id)||String(o.cloudId)===String(id));
+ if(!x)return;
+ let eta=prompt("Chef preparation time (minutes)","20");
+ if(eta===null)return;
+ const minutes=Math.max(1,+eta||20);
+ try{
+   const {error}=await sb.from("orders").update({status:"preparing"}).eq("id",x.cloudId).eq("restaurant_id",current().id);
+   if(error)throw error;
+   await loadCloudOrders(current());
+   const nx=getOrders().find(o=>String(o.cloudId)===String(x.cloudId));
+   if(nx){nx.eta=minutes;nx.started=Date.now();save();}
+   go("kitchen");
+ }catch(e){alert("Order update failed: "+(e.message||e));}
+}
+async function statusOrder(id,s){
+ let x=getOrders().find(o=>String(o.id)===String(id)||String(o.cloudId)===String(id));
+ if(!x)return;
+ const dbStatus={New:"new",Preparing:"preparing",Ready:"ready",Served:"served"}[s]||String(s).toLowerCase();
+ try{
+   const {error}=await sb.from("orders").update({status:dbStatus}).eq("id",x.cloudId).eq("restaurant_id",current().id);
+   if(error)throw error;
+   if(s==="Served" && x.tableId){
+     await sb.from("restaurant_tables").update({status:"available"}).eq("id",x.tableId).eq("restaurant_id",current().id);
+   }
+   await loadCloudOrders(current());
+   render();
+ }catch(e){alert("Order update failed: "+(e.message||e));}
+}
 function kitchen(){
 let o=getOrders(),cols=["New","Preparing","Ready"];return `<div class=head><div><h1>Kitchen / KOT</h1><small class=mut>Preparation board</small></div></div><div class=kanban>${cols.map(c=>`<section class=col><h3>${c.toUpperCase()}</h3>
 ${o.filter(x=>x.status===c).map(x=>`<div class=order><div class=line><b>#${x.id}</b><span>Table ${x.table}</span></div><ul>${x.items.map(i=>`<li>${i.qty} × ${esc(i.name)}</li>`).join("")}</ul>
-${c==="New"?`<button class="btn success" style="width:100%" onclick=accept(${x.id})>ACCEPT + SET ETA</button>`:c==="Preparing"?`<div class=eta>${x.eta} min</div><button class="btn primary" style="width:100%" onclick="statusOrder(${x.id},'Ready')">ORDER READY</button>`:`<button class="btn soft" style="width:100%" onclick="statusOrder(${x.id},'Served')">MARK SERVED</button>`}</div>`).join("")||"<p class=mut>Empty</p>"}</section>`).join("")}</div>`;
+${c==="New"?`<button class="btn success" style="width:100%" onclick="accept('${esc(String(x.cloudId||x.id))}')">ACCEPT + SET ETA</button>`:c==="Preparing"?`<div class=eta>${x.eta} min</div><button class="btn primary" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Ready')">ORDER READY</button>`:`<button class="btn soft" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Served')">MARK SERVED</button>`}</div>`).join("")||"<p class=mut>Empty</p>"}</section>`).join("")}</div>`;
 }
 function tables(){
 let r=current();return `<div class=head><div><h1>Tables & QR</h1><small class=mut>One unique QR per table</small></div><button class="btn primary" onclick=addTable()>+ ADD TABLE</button></div>
