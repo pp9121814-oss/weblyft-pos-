@@ -426,7 +426,9 @@ async function logout(){await sb.auth.signOut();db.session=null;save();auth();}
 function current(){return db.restaurants.find(r=>r.id===db.session)}
 const nav=[["dashboard","▦","Dashboard"],["pos","▣","POS / Billing"],["orders","◉","Orders"],["kitchen","♨","Kitchen / KOT"],["tables","▦","Tables & QR"],["menu","☷","Menu"],["inventory","◒","Inventory"],["reports","◔","Reports"],["customers","♙","Customers"],["settings","⚙","Settings"],["subscription","◆","Subscription"]];
 function shell(r){
- const navHtml=nav.map(n=>`<button class="${page===n[0]?"active":""}" onclick="go('${n[0]}');closeMobileNav()">${n[1]} &nbsp; ${n[2]}</button>`).join("");
+ const active=subscriptionIsActive(r);
+ const navItems=active?nav:[["dashboard","▦","Dashboard"],["subscription","◆","Subscription"]];
+ const navHtml=navItems.map(n=>`<button class="${page===n[0]?"active":""}" onclick="go('${n[0]}');closeMobileNav()">${n[1]} &nbsp; ${n[2]}</button>`).join("");
  setTimeout(()=>{
    const mn=document.getElementById("mobileNav");
    if(mn)mn.innerHTML=navHtml;
@@ -437,7 +439,7 @@ function shell(r){
      <div class=brand>WEB<span>LYFT</span> <small class=mut>Restaurant OS</small></div>
    </div>
    <div class=topright>
-     <span class="status ${subscriptionIsActive(r)?'ready':'prep'}">${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?'FREE':'SUBSCRIPTION'}</span>
+     <span class="status ${active?'ready':'prep'}">${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?'FREE':'SUBSCRIPTION'}</span>
      <b class=small>${esc(r.name)}</b>
      <button class="btn soft" onclick=logout()>Logout</button>
    </div>
@@ -478,7 +480,16 @@ function toggleSide(force){
   const open=typeof force==="boolean"?force:!document.body.classList.contains("menu-open");
   document.body.classList.toggle("menu-open",open);
 }
-function go(p){page=p;toggleSide(false);owner()}
+function go(p){
+ closeMobileNav();
+ if(PROTECTED_PAGES.has(p) && !subscriptionIsActive(current())){
+   page="subscription";
+   owner();
+   return;
+ }
+ page=p;
+ owner();
+}
 function render(){
  let f={dashboard,pos,orders,kitchen,tables,menu,inventory,reports,customers,settings,subscription}[page];
  let out=f();
@@ -501,7 +512,7 @@ return `<div class=head><div><h1>Dashboard</h1><small class=mut>Live restaurant 
 <section class=card><h3>SALES OVERVIEW</h3><div class=bars>${[30,48,41,63,53,75,88].map((h,i)=>`<div class=bar style="height:${h}%"><span>${"MTWTFSS"[i]}</span></div>`).join("")}</div></section>
 <section class=card><h3>QUICK ACTIONS</h3><div class=quick><button onclick=go('pos')>New Bill</button><button onclick=go('kitchen')>Kitchen</button><button onclick=go('tables')>Tables & QR</button><button onclick=go('menu')>Menu</button></div></section></div>`;
 }
-function pos(){
+function pos(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
 let r=current(),cats=["All",...new Set(r.menu.map(x=>x.cat))],items=r.menu.filter(x=>x.active&&(pcat==="All"||x.cat===pcat)&&x.name.toLowerCase().includes(pq.toLowerCase())),sub=cart.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;
 return `<div class=head><div><h1>POS / Billing</h1><small class=mut>Manual order → KOT</small></div></div><div class=pos>
 <section class=card><input class=search value="${esc(pq)}" placeholder="Search menu..." oninput="pq=this.value;render()"><div class=tabs>${cats.map(c=>`<button class="${pcat===c?'on':''}" onclick="pcat='${esc(c)}';render()">${esc(c)}</button>`).join("")}</div>
@@ -555,7 +566,7 @@ async function sendPOS(){
   alert("Order could not be sent: "+(e.message||e));
  }
 }
-function orders(){
+function orders(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
 let o=getOrders();return `<div class=head><div><h1>Orders</h1><small class=mut>Customer QR + POS orders</small></div></div><div class=card><table class=table><tr><th>ORDER</th><th>TABLE</th><th>ITEMS</th><th>TOTAL</th><th>STATUS</th><th>ACTION</th></tr>
 ${o.map(x=>`<tr><td>#${x.id}</td><td>${x.table}</td><td>${x.items.map(i=>esc(i.name)+" × "+i.qty).join(", ")}</td><td>${money(x.total)}</td><td><span class="status ${x.status==="New"?"new":x.status==="Preparing"?"prep":x.status==="Ready"?"ready":"served"}">${x.status}</span></td><td>
 ${x.status==="New"?`<button class="btn success" onclick="accept('${esc(String(x.cloudId||x.id))}')">ACCEPT</button>`:x.status==="Preparing"?`<button class="btn primary" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Ready')">READY</button>`:x.status==="Ready"?`<button class="btn soft" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Served')">SERVED</button>`:""}</td></tr>`).join("")||"<tr><td colspan=6>No orders</td></tr>"}</table></div>`;
@@ -589,12 +600,12 @@ async function statusOrder(id,s){
    render();
  }catch(e){alert("Order update failed: "+(e.message||e));}
 }
-function kitchen(){
+function kitchen(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
 let o=getOrders(),cols=["New","Preparing","Ready"];return `<div class=head><div><h1>Kitchen / KOT</h1><small class=mut>Preparation board</small></div></div><div class=kanban>${cols.map(c=>`<section class=col><h3>${c.toUpperCase()}</h3>
 ${o.filter(x=>x.status===c).map(x=>`<div class=order><div class=line><b>#${x.id}</b><span>Table ${x.table}</span></div><ul>${x.items.map(i=>`<li>${i.qty} × ${esc(i.name)}</li>`).join("")}</ul>
 ${c==="New"?`<button class="btn success" style="width:100%" onclick="accept('${esc(String(x.cloudId||x.id))}')">ACCEPT + SET ETA</button>`:c==="Preparing"?`<div class=eta>${x.eta} min</div><button class="btn primary" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Ready')">ORDER READY</button>`:`<button class="btn soft" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Served')">MARK SERVED</button>`}</div>`).join("")||"<p class=mut>Empty</p>"}</section>`).join("")}</div>`;
 }
-function tables(){
+function tables(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
 let r=current();return `<div class=head><div><h1>Tables & QR</h1><small class=mut>One unique QR per table</small></div><button class="btn primary" onclick=addTable()>+ ADD TABLE</button></div>
 <div class=tgrid>${r.tables.map(t=>`<button class=tile onclick="showQR(${t.no})"><b>Table ${String(t.no).padStart(2,"0")}</b><small>${t.status}</small></button>`).join("")}</div>
 <div class=card style="margin-top:10px"><b>Ordering range:</b> ${r.range}m • ${r.lat!==null?"GPS configured":"GPS not configured"}</div>`;
@@ -609,7 +620,7 @@ open(`<button class=close onclick=closeModal()>×</button><h2>Table ${n} QR</h2>
 <button class="btn soft" style="width:100%;margin-top:7px" onclick="location.href='${url.replaceAll("'","%27")}'">OPEN CUSTOMER MENU</button></div>`);
 setTimeout(()=>{let q=$("qrcode");if(q&&window.QRCode)new QRCode(q,{text:url,width:260,height:260,colorDark:"#06294c",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.H})},50);
 }
-function menu(){
+function menu(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
  let r=current();
  return `<div class=head>
    <div><h1>Menu Management</h1><small class=mut>Cloud-synced customer menu</small></div>
@@ -757,7 +768,7 @@ async function toggleMenu(id){
 }
 
 
-function inventory(){
+function inventory(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
  const r=current();
  if(!r.inventory)r.inventory=[];
  return `<div class=head>
@@ -865,11 +876,20 @@ function inventoryAdjust(id,delta){
  save();
  render();
 }
-function reports(){let o=getOrders(),sales=o.reduce((a,x)=>a+x.total,0),tax=o.reduce((a,x)=>a+x.tax,0);return `<div class=head><div><h1>Reports</h1><small class=mut>Restaurant performance</small></div></div><div class=cards><div class="card metric"><small>Total Sales</small><strong>${money(sales)}</strong></div><div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Tax Collected</small><strong>${money(tax)}</strong></div><div class="card metric"><small>Average Order</small><strong>${money(o.length?sales/o.length:0)}</strong></div><div class="card metric"><small>Tables</small><strong>${current().tables.length}</strong></div></div>`}
-function customers(){let o=getOrders(),names=[...new Set(o.map(x=>x.name).filter(Boolean))];return `<div class=head><div><h1>Customers</h1><small class=mut>Customer activity</small></div></div><div class=card>${names.length?names.map(n=>`<div class=line><b>${esc(n)}</b><span>Customer</span></div>`).join(""):"<p class=mut>No named customers yet. Customer names are optional at QR checkout.</p>"}</div>`}
+function reports(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }let o=getOrders(),sales=o.reduce((a,x)=>a+x.total,0),tax=o.reduce((a,x)=>a+x.tax,0);return `<div class=head><div><h1>Reports</h1><small class=mut>Restaurant performance</small></div></div><div class=cards><div class="card metric"><small>Total Sales</small><strong>${money(sales)}</strong></div><div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Tax Collected</small><strong>${money(tax)}</strong></div><div class="card metric"><small>Average Order</small><strong>${money(o.length?sales/o.length:0)}</strong></div><div class="card metric"><small>Tables</small><strong>${current().tables.length}</strong></div></div>`}
+function customers(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }let o=getOrders(),names=[...new Set(o.map(x=>x.name).filter(Boolean))];return `<div class=head><div><h1>Customers</h1><small class=mut>Customer activity</small></div></div><div class=card>${names.length?names.map(n=>`<div class=line><b>${esc(n)}</b><span>Customer</span></div>`).join(""):"<p class=mut>No named customers yet. Customer names are optional at QR checkout.</p>"}</div>`}
 function settings(){let r=current();return `<div class=head><div><h1>Settings</h1><small class=mut>Tax + geofence</small></div></div><div class=card><input class=field id=sn value="${esc(r.name)}" placeholder="Restaurant name"><input class=field id=st type=number value="${r.tax}" placeholder="Tax %"><input class=field id=sr type=number value="${r.range}" placeholder="Ordering range in meters"><input class=field id=slat type=number step=any value="${r.lat??""}" placeholder="Restaurant latitude"><input class=field id=slng type=number step=any value="${r.lng??""}" placeholder="Restaurant longitude"><button class="btn soft" onclick=getLocation()>USE CURRENT LOCATION</button> <button class="btn primary" onclick=saveSettings()>SAVE SETTINGS</button><p class=mut>Customer orders can be blocked outside the configured radius.</p></div>`}
 function getLocation(){if(!navigator.geolocation)return alert("Geolocation unavailable.");navigator.geolocation.getCurrentPosition(p=>{slat.value=p.coords.latitude;slng.value=p.coords.longitude},()=>alert("Allow location permission."))}
 function saveSettings(){let r=current();r.name=sn.value;r.tax=Math.max(0,+st.value||0);r.range=Math.max(1,+sr.value||100);r.lat=slat.value?+slat.value:null;r.lng=slng.value?+slng.value:null;save();owner();alert("Settings saved.")}
+function subscriptionPageLock(){
+ return `<div class=head><div><h1>Features Locked</h1><small class=mut>Your subscription is inactive.</small></div></div>
+ <div class=card style="max-width:720px">
+   <h2>Subscription required</h2>
+   <p>Order receiving, POS, Kitchen, Menu, Tables & QR, Inventory, Reports and Customers are locked until the ₹3,499 / 365-day subscription is active.</p>
+   <button class="btn primary" onclick="go('subscription')">OPEN SUBSCRIPTION</button>
+ </div>`;
+}
+
 function subscription(){
 let r=current(),isFree=String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL,active=isFree||subscriptionIsActive(r);
 return `<div class=head><div><h1>WEBLYFT Subscription</h1><small class=mut>₹3,499 • 365 days</small></div></div><div class=card style="max-width:680px">
@@ -932,6 +952,7 @@ try{
  }
  if(error)throw error;
  if(!data||!data.restaurant||!data.table)throw new Error("Invalid QR");
+  if(data.subscription_active===false)throw new Error("subscription_required_for_qr");
  let r={
    id:data.restaurant.id,name:data.restaurant.name,tax:Number(data.restaurant.tax_percent||0),
    range:Number(data.restaurant.ordering_radius_m||100),
