@@ -209,7 +209,7 @@ function requireSubscription(){
   open(`<button class="close" onclick="closeModal()">×</button>
     <h2>Subscription Required</h2>
     <p>Your WEBLYFT subscription is inactive or expired.</p>
-    <div class="notice"><b>₹3,499 / 365 days</b><br>Renew to unlock POS, Orders, Kitchen, Menu, QR ordering, Inventory and Reports.</div>
+    <div class="notice"><b>₹3,499 / 365 days</b><br>Pay ₹3,499 for 365 days to unlock POS, Orders, Kitchen, Menu, QR, Inventory and Reports.</div>
     <button class="btn primary" style="width:100%" onclick="closeModal();go('subscription')">RENEW SUBSCRIPTION</button>
     <button class="btn outline" style="width:100%;margin-top:7px" onclick="closeModal()">CANCEL</button>`);
   return false;
@@ -882,7 +882,7 @@ return `<div class=head><div><h1>WEBLYFT Subscription</h1><small class=mut>₹3,
 async function subscriptionInfo(){
 open(`<button class=close onclick="closeModal()">×</button>
 <h2>₹3,499 WEBLYFT Subscription</h2>
-<p>365-day WEBLYFT service subscription.</p>
+<p>₹3,499 • 365 days • No trial</p>
 <div class=notice><b>PhonePe checkout</b><br>This uses the secure backend endpoint <code>/api/subscription/create</code>. Merchant credentials stay on the server and are never placed in this HTML.</div>
 <button id=payBtn class="btn primary" style="width:100%;margin-top:8px">CONTINUE TO PHONEPE</button>
 <button class="btn outline" style="width:100%;margin-top:7px" onclick="closeModal()">CANCEL</button>`);
