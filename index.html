@@ -6,7 +6,14 @@
 <meta name="theme-color" content="#06294c">
 <meta name="mobile-web-app-capable" content="yes">
 <title>WEBLYFT Restaurant OS</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
+window.addEventListener("error",e=>{
+  console.error(e.error||e.message);
+});
+window.addEventListener("unhandledrejection",e=>{
+  console.error(e.reason);
+});
+</script>
 <style>
 :root{--nav:#06294c;--nav2:#041d35;--blue:#0872ee;--cyan:#18b9df;--green:#18a467;--red:#df4d57;--orange:#e99b19;--bg:#f4f7fb;--card:#fff;--line:#dfe7ef;--text:#10243e;--mut:#718096}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -209,33 +216,12 @@ function currentOwnerEmail(){
   }catch(_){ return ""; }
 }
 
-function subscriptionIsActive(r){
-  const email=String(r?.email||currentOwnerEmail()).trim().toLowerCase();
-  if(email===FREE_OWNER_EMAIL)return true;
-
-  const until=r?.subscription?.until;
-  return r?.subscription?.active===true && (!until || new Date(until).getTime()>Date.now());
-}
-
-function subscriptionDaysLeft(r){
-  if(String(r?.email||currentOwnerEmail()).trim().toLowerCase()===FREE_OWNER_EMAIL)return Infinity;
-  if(!r?.subscription?.until)return 0;
-  return Math.max(0,Math.ceil((new Date(r.subscription.until).getTime()-Date.now())/86400000));
-}
-
-function requireSubscription(){
-  const r=current();
+function accessAllowed(r){
   if(!r)return false;
-  if(subscriptionIsActive(r))return true;
-  open(`<button class="close" onclick="closeModal()">×</button>
-    <h2>Subscription Required</h2>
-    <p>Your WEBLYFT subscription is inactive or expired.</p>
-    <div class="notice"><b>₹3,499 / 365 days</b><br>Pay ₹3,499 for 365 days to unlock POS, Orders, Kitchen, Menu, QR, Inventory and Reports.</div>
-    <button class="btn primary" style="width:100%" onclick="closeModal();go('subscription')">RENEW SUBSCRIPTION</button>
-    <button class="btn outline" style="width:100%;margin-top:7px" onclick="closeModal()">CANCEL</button>`);
-  return false;
+  const email=String(r.email||"").trim().toLowerCase();
+  if(email===FREE_OWNER_EMAIL)return true;
+  return r.is_active===true || r.manual_access===true;
 }
-
 const PROTECTED_PAGES = new Set(["pos","orders","kitchen","tables","menu","inventory","reports","customers"]);
 
 async function cloudRegister(name,owner,email,phone,password,tables){
@@ -445,11 +431,11 @@ async function login(){
 }
 async function logout(){await sb.auth.signOut();db.session=null;save();auth();}
 function current(){return db.restaurants.find(r=>r.id===db.session)}
-const nav=[["dashboard","▦","Dashboard"],["pos","▣","POS / Billing"],["orders","◉","Orders"],["kitchen","♨","Kitchen / KOT"],["tables","▦","Tables & QR"],["menu","☷","Menu"],["inventory","◒","Inventory"],["reports","◔","Reports"],["customers","♙","Customers"],["settings","⚙","Settings"],["subscription","◆","Subscription"]];
+const nav=[["dashboard","▦","Dashboard"],["pos","▣","POS / Billing"],["orders","◉","Orders"],["kitchen","♨","Kitchen / KOT"],["tables","▦","Tables & QR"],["menu","☷","Menu"],["inventory","◒","Inventory"],["reports","◔","Reports"],["customers","♙","Customers"],["settings","⚙","Settings"]];
 const adminNav=["admin","⚡","ADMIN CONTROL"];
 function shell(r){
- const active=subscriptionIsActive(r);
- const navItems=active?nav:[["dashboard","▦","Dashboard"],["subscription","◆","Subscription"]];
+ const active=accessAllowed(r);
+ const navItems=active?nav:[["dashboard","▦","Dashboard"]];
  const finalNavItems=isAdminAccount(r)?[...navItems,adminNav]:navItems;
  const navHtml=finalNavItems.map(n=>`<button class="${page===n[0]?"active":""}" onclick="go('${n[0]}');closeMobileNav()">${n[1]} &nbsp; ${n[2]}</button>`).join("");
  setTimeout(()=>{
@@ -525,8 +511,8 @@ function go(p){
   });
   return;
 }
- if(PROTECTED_PAGES.has(p) && !subscriptionIsActive(current())){
-   page="subscription";
+ if(PROTECTED_PAGES.has(p) && !accessAllowed(current())){
+   page="dashboard";
    owner();
    return;
  }
@@ -534,7 +520,7 @@ function go(p){
  owner();
 }
 function render(){
- let f={dashboard,pos,orders,kitchen,tables,menu,inventory,reports,customers,settings,subscription,admin}[page];
+ let f={dashboard,pos,orders,kitchen,tables,menu,inventory,reports,customers,settings,admin}[page];
  let out=f();
  if(out instanceof Promise){
    out.then(x=>main.innerHTML=x);
@@ -551,12 +537,12 @@ return `<div class=head><div><h1>Dashboard</h1><small class=mut>Live restaurant 
 <div class=cards><div class="card metric"><small>Today's Sales</small><strong>${money(sales)}</strong><span style="color:var(--green)">LIVE</span></div>
 <div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Pending Orders</small><strong>${pending}</strong></div>
 <div class="card metric"><small>Occupied Tables</small><strong>${occ} / ${r.tables.length}</strong></div>
-<div class="card metric sub"><small>WEBLYFT SUBSCRIPTION</small><strong>${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?"FREE ACCESS":money(3499)+" / YEAR"}</strong><span>${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?"Permanent owner exemption":subscriptionIsActive(r)?"ACTIVE • "+subscriptionDaysLeft(r)+" days left":"EXPIRED / LOCKED"}</span></div></div>
+<div class="card metric sub"><small>WEBLYFT SUBSCRIPTION</small><strong>${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?"FREE ACCESS":money(3499)+" / YEAR"}</strong><span>${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?"Permanent owner exemption":accessAllowed(r)?"ACTIVE • "+subscriptionDaysLeft(r)+" days left":"EXPIRED / LOCKED"}</span></div></div>
 <div class=grid3><section class=card><h3>LIVE ORDERS</h3>${o.slice(0,7).map(x=>`<div class=line><b>#${x.id}</b><span>Table ${x.table}</span><span>${money(x.total)}</span><span class="status ${x.status==="New"?"new":x.status==="Preparing"?"prep":x.status==="Ready"?"ready":"served"}">${x.status}</span></div>`).join("")||"<p class=mut>No orders yet.</p>"}</section>
 <section class=card><h3>SALES OVERVIEW</h3><div class=bars>${[30,48,41,63,53,75,88].map((h,i)=>`<div class=bar style="height:${h}%"><span>${"MTWTFSS"[i]}</span></div>`).join("")}</div></section>
 <section class=card><h3>QUICK ACTIONS</h3><div class=quick><button onclick=go('pos')>New Bill</button><button onclick=go('kitchen')>Kitchen</button><button onclick=go('tables')>Tables & QR</button><button onclick=go('menu')>Menu</button></div></section></div>`;
 }
-function pos(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
+function pos(){ if(!accessAllowed(current())){ return accessLockedPage(); }
 let r=current(),cats=["All",...new Set(r.menu.map(x=>x.cat))],items=r.menu.filter(x=>x.active&&(pcat==="All"||x.cat===pcat)&&x.name.toLowerCase().includes(pq.toLowerCase())),sub=cart.reduce((a,x)=>a+x.price*x.qty,0),tax=sub*r.tax/100;
 return `<div class=head><div><h1>POS / Billing</h1><small class=mut>Manual order → KOT</small></div></div><div class=pos>
 <section class=card><input class=search value="${esc(pq)}" placeholder="Search menu..." oninput="pq=this.value;render()"><div class=tabs>${cats.map(c=>`<button class="${pcat===c?'on':''}" onclick="pcat='${esc(c)}';render()">${esc(c)}</button>`).join("")}</div>
@@ -610,7 +596,7 @@ async function sendPOS(){
   alert("Order could not be sent: "+(e.message||e));
  }
 }
-function orders(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
+function orders(){ if(!accessAllowed(current())){ return accessLockedPage(); }
 let o=getOrders();return `<div class=head><div><h1>Orders</h1><small class=mut>Customer QR + POS orders</small></div></div><div class=card><table class=table><tr><th>ORDER</th><th>TABLE</th><th>ITEMS</th><th>TOTAL</th><th>STATUS</th><th>ACTION</th></tr>
 ${o.map(x=>`<tr><td>#${x.id}</td><td>${x.table}</td><td>${x.items.map(i=>esc(i.name)+" × "+i.qty).join(", ")}</td><td>${money(x.total)}</td><td><span class="status ${x.status==="New"?"new":x.status==="Preparing"?"prep":x.status==="Ready"?"ready":"served"}">${x.status}</span></td><td>
 ${x.status==="New"?`<button class="btn success" onclick="accept('${esc(String(x.cloudId||x.id))}')">ACCEPT</button>`:x.status==="Preparing"?`<button class="btn primary" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Ready')">READY</button>`:x.status==="Ready"?`<button class="btn soft" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Served')">SERVED</button>`:""}</td></tr>`).join("")||"<tr><td colspan=6>No orders</td></tr>"}</table></div>`;
@@ -644,12 +630,12 @@ async function statusOrder(id,s){
    render();
  }catch(e){alert("Order update failed: "+(e.message||e));}
 }
-function kitchen(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
+function kitchen(){ if(!accessAllowed(current())){ return accessLockedPage(); }
 let o=getOrders(),cols=["New","Preparing","Ready"];return `<div class=head><div><h1>Kitchen / KOT</h1><small class=mut>Preparation board</small></div></div><div class=kanban>${cols.map(c=>`<section class=col><h3>${c.toUpperCase()}</h3>
 ${o.filter(x=>x.status===c).map(x=>`<div class=order><div class=line><b>#${x.id}</b><span>Table ${x.table}</span></div><ul>${x.items.map(i=>`<li>${i.qty} × ${esc(i.name)}</li>`).join("")}</ul>
 ${c==="New"?`<button class="btn success" style="width:100%" onclick="accept('${esc(String(x.cloudId||x.id))}')">ACCEPT + SET ETA</button>`:c==="Preparing"?`<div class=eta>${x.eta} min</div><button class="btn primary" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Ready')">ORDER READY</button>`:`<button class="btn soft" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Served')">MARK SERVED</button>`}</div>`).join("")||"<p class=mut>Empty</p>"}</section>`).join("")}</div>`;
 }
-function tables(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
+function tables(){ if(!accessAllowed(current())){ return accessLockedPage(); }
 let r=current();return `<div class=head><div><h1>Tables & QR</h1><small class=mut>One unique QR per table</small></div><button class="btn primary" onclick=addTable()>+ ADD TABLE</button></div>
 <div class=tgrid>${r.tables.map(t=>`<button class=tile onclick="showQR(${t.no})"><b>Table ${String(t.no).padStart(2,"0")}</b><small>${t.status}</small></button>`).join("")}</div>
 <div class=card style="margin-top:10px"><b>Ordering range:</b> ${r.range}m • ${r.lat!==null?"GPS configured":"GPS not configured"}</div>`;
@@ -664,7 +650,7 @@ open(`<button class=close onclick=closeModal()>×</button><h2>Table ${n} QR</h2>
 <button class="btn soft" style="width:100%;margin-top:7px" onclick="location.href='${url.replaceAll("'","%27")}'">OPEN CUSTOMER MENU</button></div>`);
 setTimeout(()=>{let q=$("qrcode");if(q&&window.QRCode)new QRCode(q,{text:url,width:260,height:260,colorDark:"#06294c",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.H})},50);
 }
-function menu(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
+function menu(){ if(!accessAllowed(current())){ return accessLockedPage(); }
  let r=current();
  return `<div class=head>
    <div><h1>Menu Management</h1><small class=mut>Cloud-synced customer menu</small></div>
@@ -812,7 +798,7 @@ async function toggleMenu(id){
 }
 
 
-function inventory(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }
+function inventory(){ if(!accessAllowed(current())){ return accessLockedPage(); }
  const r=current();
  if(!r.inventory)r.inventory=[];
  return `<div class=head>
@@ -920,8 +906,8 @@ function inventoryAdjust(id,delta){
  save();
  render();
 }
-function reports(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }let o=getOrders(),sales=o.reduce((a,x)=>a+x.total,0),tax=o.reduce((a,x)=>a+x.tax,0);return `<div class=head><div><h1>Reports</h1><small class=mut>Restaurant performance</small></div></div><div class=cards><div class="card metric"><small>Total Sales</small><strong>${money(sales)}</strong></div><div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Tax Collected</small><strong>${money(tax)}</strong></div><div class="card metric"><small>Average Order</small><strong>${money(o.length?sales/o.length:0)}</strong></div><div class="card metric"><small>Tables</small><strong>${current().tables.length}</strong></div></div>`}
-function customers(){ if(!subscriptionIsActive(current())){ return subscriptionPageLock(); }let o=getOrders(),names=[...new Set(o.map(x=>x.name).filter(Boolean))];return `<div class=head><div><h1>Customers</h1><small class=mut>Customer activity</small></div></div><div class=card>${names.length?names.map(n=>`<div class=line><b>${esc(n)}</b><span>Customer</span></div>`).join(""):"<p class=mut>No named customers yet. Customer names are optional at QR checkout.</p>"}</div>`}
+function reports(){ if(!accessAllowed(current())){ return accessLockedPage(); }let o=getOrders(),sales=o.reduce((a,x)=>a+x.total,0),tax=o.reduce((a,x)=>a+x.tax,0);return `<div class=head><div><h1>Reports</h1><small class=mut>Restaurant performance</small></div></div><div class=cards><div class="card metric"><small>Total Sales</small><strong>${money(sales)}</strong></div><div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Tax Collected</small><strong>${money(tax)}</strong></div><div class="card metric"><small>Average Order</small><strong>${money(o.length?sales/o.length:0)}</strong></div><div class="card metric"><small>Tables</small><strong>${current().tables.length}</strong></div></div>`}
+function customers(){ if(!accessAllowed(current())){ return accessLockedPage(); }let o=getOrders(),names=[...new Set(o.map(x=>x.name).filter(Boolean))];return `<div class=head><div><h1>Customers</h1><small class=mut>Customer activity</small></div></div><div class=card>${names.length?names.map(n=>`<div class=line><b>${esc(n)}</b><span>Customer</span></div>`).join(""):"<p class=mut>No named customers yet. Customer names are optional at QR checkout.</p>"}</div>`}
 function settings(){let r=current();return `<div class=head><div><h1>Settings</h1><small class=mut>Tax + geofence</small></div></div><div class=card><input class=field id=sn value="${esc(r.name)}" placeholder="Restaurant name"><input class=field id=st type=number value="${r.tax}" placeholder="Tax %"><input class=field id=sr type=number value="${r.range}" placeholder="Ordering range in meters"><input class=field id=slat type=number step=any value="${r.lat??""}" placeholder="Restaurant latitude"><input class=field id=slng type=number step=any value="${r.lng??""}" placeholder="Restaurant longitude"><button class="btn soft" onclick=getLocation()>USE CURRENT LOCATION</button> <button class="btn primary" onclick=saveSettings()>SAVE SETTINGS</button><p class=mut>Customer orders can be blocked outside the configured radius.</p></div>`}
 function getLocation(){if(!navigator.geolocation)return alert("Geolocation unavailable.");navigator.geolocation.getCurrentPosition(p=>{slat.value=p.coords.latitude;slng.value=p.coords.longitude},()=>alert("Allow location permission."))}
 function saveSettings(){let r=current();r.name=sn.value;r.tax=Math.max(0,+st.value||0);r.range=Math.max(1,+sr.value||100);r.lat=slat.value?+slat.value:null;r.lng=slng.value?+slng.value:null;save();owner();alert("Settings saved.")}
@@ -954,8 +940,7 @@ async function loadAdmin(){
          ${esc(x.owner_name||"")} • ${esc(x.email||"")} • ID ${esc(x.restaurant_code||x.id)}
        </small>
        <small style="display:block;margin-top:3px">
-         Subscription: <b>${esc(x.subscription_status||"inactive")}</b>
-         ${x.subscription_expires_at?` • ${new Date(x.subscription_expires_at).toLocaleDateString()}`:""}
+         Access: <b>${x.is_active?'ACTIVE':'INACTIVE'}</b>
        </small>
      </span>
      <span>
@@ -984,49 +969,13 @@ async function adminToggle(id,nextActive){
  }
 }
 
-function subscriptionPageLock(){
- return `<div class=head><div><h1>Features Locked</h1><small class=mut>Your subscription is inactive.</small></div></div>
+function accessLockedPage(){
+ return `<div class=head><div><h1>Account Inactive</h1><small class=mut>Waiting for WEBLYFT Admin activation</small></div></div>
  <div class=card style="max-width:720px">
-   <h2>Subscription required</h2>
-   <p>Order receiving, POS, Kitchen, Menu, Tables & QR, Inventory, Reports and Customers are locked until the ₹3,499 / 365-day subscription is active.</p>
-   <button class="btn primary" onclick="go('subscription')">OPEN SUBSCRIPTION</button>
+   <h2>Access is currently locked</h2>
+   <p>WEBLYFT Admin must activate this restaurant before POS, Orders, Kitchen/KOT, Menu, Tables & QR, Inventory, Reports and Customers become available.</p>
+   <div class=notice><b>No subscription required.</b><br>Access is controlled by WEBLYFT Admin.</div>
  </div>`;
-}
-
-function subscription(){
-let r=current(),isFree=String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL,active=isFree||subscriptionIsActive(r);
-return `<div class=head><div><h1>WEBLYFT Subscription</h1><small class=mut>₹3,499 • 365 days</small></div></div><div class=card style="max-width:680px">
-<div style="background:linear-gradient(135deg,#0872ee,#0755ca);color:#fff;border-radius:12px;padding:25px"><small>WEBLYFT SERVICE PLAN</small><h1>₹3,499 / YEAR</h1><p>365 days • Restaurant OS</p><div class="${active?'successBox':'notice'}">${active?"Subscription ACTIVE":"Subscription not active"}</div>${isFree
- ? `<div class="successBox" style="margin-top:10px"><b>FREE OWNER ACCESS</b><br>This owner account is exempt from subscription charges.</div>`
- : `<button class="btn" style="background:#fff;color:#0755ca;margin-top:10px" onclick=subscriptionInfo()>PAY / RENEW ₹3,499</button>`}</div>
-<p class=mut><b>Payment separation:</b> this subscription is for WEBLYFT service. Customer food-order payments are separate.</p>
-<div class=notice><b>Payment gateway connection:</b> this standalone HTML cannot securely verify a real merchant payment by itself. The merchant ID must be kept server-side and the gateway webhook must confirm payment before activating 365 days.</div></div>`;
-}
-async function subscriptionInfo(){
-open(`<button class=close onclick="closeModal()">×</button>
-<h2>₹3,499 WEBLYFT Subscription</h2>
-<p>₹3,499 • 365 days • No trial</p>
-<div class=notice><b>PhonePe checkout</b><br>This uses the secure backend endpoint <code>/api/subscription/create</code>. Merchant credentials stay on the server and are never placed in this HTML.</div>
-<button id=payBtn class="btn primary" style="width:100%;margin-top:8px">CONTINUE TO PHONEPE</button>
-<button class="btn outline" style="width:100%;margin-top:7px" onclick="closeModal()">CANCEL</button>`);
-$("payBtn").onclick=async()=>{
-  const r=current(),b=$("payBtn");
-  b.disabled=true;b.textContent="CONNECTING…";
-  try{
-    const res=await fetch("/api/subscription/create",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({restaurantId:r.id,amount:3499,validityDays:365})
-    });
-    if(!res.ok) throw new Error("Backend unavailable");
-    const j=await res.json();
-    if(!j.checkoutUrl) throw new Error("No checkout URL returned");
-    location.href=j.checkoutUrl;
-  }catch(e){
-    b.disabled=false;b.textContent="CONTINUE TO PHONEPE";
-    alert("PhonePe backend is not connected yet. Subscription was NOT activated.");
-  }
-};
 }
 function open(x){$("modal").innerHTML=`<div class=modal onclick="if(event.target===this)closeModal()"><div class=box>${x}</div></div>`}
 function closeModal(){$("modal").innerHTML=""}
