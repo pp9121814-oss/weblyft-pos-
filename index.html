@@ -181,8 +181,18 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const FREE_OWNER_EMAIL = "panwarbudhsingh@gmail.com";
 const ADMIN_EMAIL = "panwarbudhsingh@gmail.com";
 
+async function getAuthEmail(){
+ try{
+   const {data,error}=await sb.auth.getUser();
+   if(error)throw error;
+   return String(data.user?.email||"").trim().toLowerCase();
+ }catch(_){ return ""; }
+}
+async function isAdminAccountAsync(){
+ return (await getAuthEmail())===ADMIN_EMAIL;
+}
 function isAdminAccount(r=current()){
-  return String(r?.email||currentOwnerEmail()).trim().toLowerCase()===ADMIN_EMAIL;
+ return String(r?.email||"").trim().toLowerCase()===ADMIN_EMAIL;
 }
 
 function adminRequired(){
@@ -445,6 +455,15 @@ function shell(r){
  setTimeout(()=>{
    const mn=document.getElementById("mobileNav");
    if(mn)mn.innerHTML=navHtml;
+   getAuthEmail().then(email=>{
+     if(email===ADMIN_EMAIL && mn && !mn.querySelector('[data-admin="1"]')){
+       const b=document.createElement("button");
+       b.setAttribute("data-admin","1");
+       b.textContent="⚡  ADMIN CONTROL";
+       b.onclick=()=>{go("admin");closeMobileNav();};
+       mn.appendChild(b);
+     }
+   });
  },0);
  return `<div class=top>
    <div style="display:flex;align-items:center;gap:8px">
@@ -478,6 +497,10 @@ async function owner(){
  if(__customerMode)return;
  let r=current();
  if(!r){auth();return;}
+ const authEmail=await getAuthEmail();
+ if(authEmail) r.email=authEmail;
+ db.ownerEmail=r.email||"";
+ save();
  $("app").innerHTML=shell(r);
  try{
    await loadCloud(r);
@@ -495,7 +518,13 @@ function toggleSide(force){
 }
 function go(p){
  closeMobileNav();
- if(p==="admin" && !isAdminAccount(current())){ alert("Admin access only."); return; }
+ if(p==="admin"){
+  isAdminAccountAsync().then(ok=>{
+    if(!ok){alert(`Admin access only: ${ADMIN_EMAIL}`);return;}
+    page="admin";owner();
+  });
+  return;
+}
  if(PROTECTED_PAGES.has(p) && !subscriptionIsActive(current())){
    page="subscription";
    owner();
@@ -898,7 +927,7 @@ function getLocation(){if(!navigator.geolocation)return alert("Geolocation unava
 function saveSettings(){let r=current();r.name=sn.value;r.tax=Math.max(0,+st.value||0);r.range=Math.max(1,+sr.value||100);r.lat=slat.value?+slat.value:null;r.lng=slng.value?+slng.value:null;save();owner();alert("Settings saved.")}
 
 async function admin(){
- if(!adminRequired())return "";
+ if(!(await isAdminAccountAsync()))return `<div class=card><div class=notice>Admin access denied. Please login with ${ADMIN_EMAIL}.</div></div>`;
  return `<div class=head>
    <div><h1>Admin Control</h1><small class=mut>Manage WEBLYFT restaurant accounts</small></div>
    <button class="btn primary" onclick="loadAdmin()">REFRESH</button>
@@ -911,7 +940,7 @@ async function admin(){
 }
 
 async function loadAdmin(){
- if(!adminRequired())return;
+ if(!(await isAdminAccountAsync())){alert(`Admin access only: ${ADMIN_EMAIL}`);return;}
  const box=$("adminList");
  if(!box)return;
  try{
@@ -942,7 +971,7 @@ async function loadAdmin(){
 }
 
 async function adminToggle(id,nextActive){
- if(!adminRequired())return;
+ if(!(await isAdminAccountAsync())){alert(`Admin access only: ${ADMIN_EMAIL}`);return;}
  const action=nextActive?"activate":"deactivate";
  if(!confirm(`Are you sure you want to ${action} this restaurant account?`))return;
  try{
