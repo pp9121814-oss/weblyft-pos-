@@ -239,14 +239,14 @@ async function loadCloud(r){
   sb.from("menu_items").select("*").eq("restaurant_id",r.id).order("created_at"),
   sb.from("orders").select("*").eq("restaurant_id",r.id).order("created_at",{ascending:false}),
   sb.from("order_items").select("*")
- ]);
+]);
  if(t.error)throw t.error;if(m.error)throw m.error;
  if(o.error)throw o.error;
  if(oi.error)throw oi.error;
 
  r.code=r.code||r.restaurant_code||null;
- r.is_active = r.is_active===true;
- r.manual_access = r.manual_access===true;
+ r.is_active = r.is_active !== false;
+ r.manual_access = r.manual_access === true;
  r.tables=(t.data||[]).map(x=>({
   no:x.table_number,id:x.id,token:x.qr_token,
   status:x.status==="occupied"?"Occupied":x.status==="reserved"?"Reserved":"Available"
@@ -291,12 +291,8 @@ async function loadCloud(r){
    source:x.source||"QR",
    customerName:x.customer_name||""
  }));
-
- const s=c.data?.[0];
- r.subscription={
-  active:s?.status==="active",
-  until:s?.expires_at?new Date(s.expires_at).getTime():null
- };
+  r.is_active = r.is_active===true;
+  r.manual_access = r.manual_access===true;
  save();
 }
 
