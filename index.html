@@ -6,14 +6,7 @@
 <meta name="theme-color" content="#06294c">
 <meta name="mobile-web-app-capable" content="yes">
 <title>WEBLYFT Restaurant OS</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
-window.addEventListener("error",e=>{
-  console.error(e.error||e.message);
-});
-window.addEventListener("unhandledrejection",e=>{
-  console.error(e.reason);
-});
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{--nav:#06294c;--nav2:#041d35;--blue:#0872ee;--cyan:#18b9df;--green:#18a467;--red:#df4d57;--orange:#e99b19;--bg:#f4f7fb;--card:#fff;--line:#dfe7ef;--text:#10243e;--mut:#718096}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -198,13 +191,10 @@ async function getAuthEmail(){
 async function isAdminAccountAsync(){
  return (await getAuthEmail())===ADMIN_EMAIL;
 }
-function isAdminAccount(r=current()){
- return String(r?.email||"").trim().toLowerCase()===ADMIN_EMAIL;
-}
 
-function adminRequired(){
-  if(!isAdminAccount()){ alert("Admin access only."); return false; }
-  return true;
+function isAdminAccount(r){
+  if(!r)return false;
+  return String(r.email||"").trim().toLowerCase()===ADMIN_EMAIL;
 }
 
 
@@ -216,12 +206,7 @@ function currentOwnerEmail(){
   }catch(_){ return ""; }
 }
 
-function accessAllowed(r){
-  if(!r)return false;
-  const email=String(r.email||"").trim().toLowerCase();
-  if(email===FREE_OWNER_EMAIL)return true;
-  return r.is_active===true || r.manual_access===true;
-}
+function accessAllowed(r){ if(!r)return false; const email=String(r.email||"").trim().toLowerCase(); if(email===ADMIN_EMAIL)return true; return r.is_active===true || r.manual_access===true; }
 const PROTECTED_PAGES = new Set(["pos","orders","kitchen","tables","menu","inventory","reports","customers"]);
 
 async function cloudRegister(name,owner,email,phone,password,tables){
@@ -249,18 +234,19 @@ async function cloudLogin(email,password){
  return r;
 }
 async function loadCloud(r){
- const [t,m,c,o,oi]=await Promise.all([
+ const [t,m,o,oi]=await Promise.all([
   sb.from("restaurant_tables").select("*").eq("restaurant_id",r.id).order("table_number"),
   sb.from("menu_items").select("*").eq("restaurant_id",r.id).order("created_at"),
-  sb.from("subscriptions").select("*").eq("restaurant_id",r.id).order("created_at",{ascending:false}).limit(1),
   sb.from("orders").select("*").eq("restaurant_id",r.id).order("created_at",{ascending:false}),
   sb.from("order_items").select("*")
  ]);
- if(t.error)throw t.error;if(m.error)throw m.error;if(c.error)throw c.error;
+ if(t.error)throw t.error;if(m.error)throw m.error;
  if(o.error)throw o.error;
  if(oi.error)throw oi.error;
 
  r.code=r.code||r.restaurant_code||null;
+ r.is_active = r.is_active===true;
+ r.manual_access = r.manual_access===true;
  r.tables=(t.data||[]).map(x=>({
   no:x.table_number,id:x.id,token:x.qr_token,
   status:x.status==="occupied"?"Occupied":x.status==="reserved"?"Reserved":"Available"
@@ -408,7 +394,7 @@ async function register(){
   const r=await cloudRegister(rn.value.trim(),ro.value.trim(),re.value.trim(),rp.value.trim(),rpass.value,+nt.value||12);
   db.session=r.id;
   db.restaurants=db.restaurants.filter(x=>x.id!==r.id);
-  db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,subscription:{active:false,until:null},tables:[],menu:[]});
+  db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,manual_access:false,is_active:false,tables:[],menu:[]});
   db.ownerEmail=r.email||"";
   save(); await loadCloud(current()); owner();
  }catch(e){
@@ -424,7 +410,7 @@ async function login(){
  try{
   const r=await cloudLogin(li.value.trim(),lp.value);
   db.session=r.id;db.restaurants=db.restaurants.filter(x=>x.id!==r.id);
-  db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,subscription:{active:false,until:null},tables:[],menu:[]});
+  db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,manual_access:false,is_active:false,tables:[],menu:[]});
   db.ownerEmail=r.email||"";
   save();await loadCloud(current());owner();
  }catch(e){alert("Login failed: "+e.message);}
@@ -442,12 +428,21 @@ function shell(r){
    const mn=document.getElementById("mobileNav");
    if(mn)mn.innerHTML=navHtml;
    getAuthEmail().then(email=>{
-     if(email===ADMIN_EMAIL && mn && !mn.querySelector('[data-admin="1"]')){
-       const b=document.createElement("button");
-       b.setAttribute("data-admin","1");
-       b.textContent="⚡  ADMIN CONTROL";
-       b.onclick=()=>{go("admin");closeMobileNav();};
-       mn.appendChild(b);
+     if(email===ADMIN_EMAIL){
+       const targets=[];
+       const desktop=document.querySelector(".side .nav");
+       if(desktop)targets.push(desktop);
+       if(mn)targets.push(mn);
+       targets.forEach(target=>{
+         if(!target.querySelector('[data-admin="1"]')){
+           const b=document.createElement("button");
+           b.setAttribute("data-admin","1");
+           b.className=page==="admin"?"active":"";
+           b.textContent="⚡  ADMIN CONTROL";
+           b.onclick=()=>{go("admin");closeMobileNav();};
+           target.appendChild(b);
+         }
+       });
      }
    });
  },0);
@@ -457,7 +452,7 @@ function shell(r){
      <div class=brand>WEB<span>LYFT</span> <small class=mut>Restaurant OS</small></div>
    </div>
    <div class=topright>
-     <span class="status ${active?'ready':'prep'}">${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?'FREE':'SUBSCRIPTION'}</span>
+     <span class="status ${active?'ready':'prep'}">${String(r.email||"").toLowerCase()===ADMIN_EMAIL?'ADMIN':active?'ACTIVE':'INACTIVE'}</span>
      <b class=small>${esc(r.name)}</b>
      <button class="btn soft" onclick=logout()>Logout</button>
    </div>
@@ -537,7 +532,7 @@ return `<div class=head><div><h1>Dashboard</h1><small class=mut>Live restaurant 
 <div class=cards><div class="card metric"><small>Today's Sales</small><strong>${money(sales)}</strong><span style="color:var(--green)">LIVE</span></div>
 <div class="card metric"><small>Total Orders</small><strong>${o.length}</strong></div><div class="card metric"><small>Pending Orders</small><strong>${pending}</strong></div>
 <div class="card metric"><small>Occupied Tables</small><strong>${occ} / ${r.tables.length}</strong></div>
-<div class="card metric sub"><small>WEBLYFT SUBSCRIPTION</small><strong>${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?"FREE ACCESS":money(3499)+" / YEAR"}</strong><span>${String(r.email||"").toLowerCase()===FREE_OWNER_EMAIL?"Permanent owner exemption":accessAllowed(r)?"ACTIVE • "+subscriptionDaysLeft(r)+" days left":"EXPIRED / LOCKED"}</span></div></div>
+<div class="card metric sub"><small>ACCOUNT ACCESS</small><strong>${accessAllowed(r)?"ACTIVE":"INACTIVE"}</strong><span>${String(r.email||"").toLowerCase()===ADMIN_EMAIL?"MASTER ADMIN":accessAllowed(r)?"ACTIVATED BY WEBLYFT":"WAITING FOR ADMIN ACTIVATION"}</span></div></div>
 <div class=grid3><section class=card><h3>LIVE ORDERS</h3>${o.slice(0,7).map(x=>`<div class=line><b>#${x.id}</b><span>Table ${x.table}</span><span>${money(x.total)}</span><span class="status ${x.status==="New"?"new":x.status==="Preparing"?"prep":x.status==="Ready"?"ready":"served"}">${x.status}</span></div>`).join("")||"<p class=mut>No orders yet.</p>"}</section>
 <section class=card><h3>SALES OVERVIEW</h3><div class=bars>${[30,48,41,63,53,75,88].map((h,i)=>`<div class=bar style="height:${h}%"><span>${"MTWTFSS"[i]}</span></div>`).join("")}</div></section>
 <section class=card><h3>QUICK ACTIONS</h3><div class=quick><button onclick=go('pos')>New Bill</button><button onclick=go('kitchen')>Kitchen</button><button onclick=go('tables')>Tables & QR</button><button onclick=go('menu')>Menu</button></div></section></div>`;
@@ -969,20 +964,8 @@ async function adminToggle(id,nextActive){
  }
 }
 
-function accessLockedPage(){
- return `<div class=head><div><h1>Account Inactive</h1><small class=mut>Waiting for WEBLYFT Admin activation</small></div></div>
- <div class=card style="max-width:720px">
-   <h2>Access is currently locked</h2>
-   <p>WEBLYFT Admin must activate this restaurant before POS, Orders, Kitchen/KOT, Menu, Tables & QR, Inventory, Reports and Customers become available.</p>
-   <div class=notice><b>No subscription required.</b><br>Access is controlled by WEBLYFT Admin.</div>
- </div>`;
-}
-function open(x){$("modal").innerHTML=`<div class=modal onclick="if(event.target===this)closeModal()"><div class=box>${x}</div></div>`}
-function closeModal(){$("modal").innerHTML=""}
-function close(){closeModal()}
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+function accessLockedPage(){ return `<div class=head><div><h1>Account Inactive</h1><small class=mut>Waiting for WEBLYFT Admin activation</small></div></div><div class=card style="max-width:720px"><h2>Access is currently locked</h2><p>Your restaurant account must be activated by WEBLYFT Admin before POS, Orders, Kitchen/KOT, Menu, Tables & QR, Inventory, Reports and Customers become available.</p><div class=notice><b>No subscription is required.</b><br>WEBLYFT access is controlled only by Admin activation.</div></div>`;}
 
-function distance(a,b,c,d){let R=6371000,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p,x=Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
 async function customer(){
 let p=new URLSearchParams(location.search);
 let rid=p.get("rid"),tableNo=Number(p.get("table")),token=p.get("token");
