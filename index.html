@@ -234,6 +234,24 @@ async function cloudLogin(email,password){
  return r;
 }
 async function loadCloud(r){
+ const {data:remoteRestaurant,error:remoteRestaurantError}=await sb
+   .from("restaurants")
+   .select("*")
+   .eq("id",r.id)
+   .single();
+ if(remoteRestaurantError)throw remoteRestaurantError;
+ r.is_active=remoteRestaurant.is_active===true;
+ r.manual_access=remoteRestaurant.manual_access===true;
+ r.name=remoteRestaurant.name;
+ r.email=remoteRestaurant.email;
+ r.owner=remoteRestaurant.owner_name;
+ r.phone=remoteRestaurant.phone;
+ r.tax=Number(remoteRestaurant.tax_percent||0);
+ r.range=Number(remoteRestaurant.ordering_radius_m||100);
+ r.lat=remoteRestaurant.latitude;
+ r.lng=remoteRestaurant.longitude;
+ r.code=remoteRestaurant.restaurant_code||r.code||null;
+
  const [t,m,o,oi]=await Promise.all([
   sb.from("restaurant_tables").select("*").eq("restaurant_id",r.id).order("table_number"),
   sb.from("menu_items").select("*").eq("restaurant_id",r.id).order("created_at"),
@@ -291,8 +309,7 @@ async function loadCloud(r){
    source:x.source||"QR",
    customerName:x.customer_name||""
  }));
-  r.is_active = r.is_active===true;
-  r.manual_access = r.manual_access===true;
+
  save();
 }
 
@@ -390,7 +407,11 @@ async function register(){
   const r=await cloudRegister(rn.value.trim(),ro.value.trim(),re.value.trim(),rp.value.trim(),rpass.value,+nt.value||12);
   db.session=r.id;
   db.restaurants=db.restaurants.filter(x=>x.id!==r.id);
-  db.restaurants.push({id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,manual_access:false,is_active:false,tables:[],menu:[]});
+  db.restaurants.push({
+    id:r.id,name:r.name,owner:r.owner_name,email:r.email,phone:r.phone,
+    tax:r.tax_percent,range:r.ordering_radius_m,lat:r.latitude,lng:r.longitude,
+    manual_access:r.manual_access===true,is_active:r.is_active===true,tables:[],menu:[]
+  });
   db.ownerEmail=r.email||"";
   save(); await loadCloud(current()); owner();
  }catch(e){
@@ -983,7 +1004,7 @@ try{
  }
  if(error)throw error;
  if(!data||!data.restaurant||!data.table)throw new Error("Invalid QR");
-  if(data.subscription_active===false)throw new Error("subscription_required_for_qr");
+  if(data.access_active===false)throw new Error("restaurant_inactive");
  let r={
    id:data.restaurant.id,name:data.restaurant.name,tax:Number(data.restaurant.tax_percent||0),
    range:Number(data.restaurant.ordering_radius_m||100),
