@@ -1190,7 +1190,7 @@ try{
   <div class=line><b>Total</b><b>${money(sub+tax)}</b></div>
   <input id=customerName class=field placeholder="Name (optional)">
   <textarea id=customerNote class=field placeholder="Special note"></textarea>
-  <button id="qrPlaceBtn" class="btn primary" style="width:100%;margin-top:8px">PLACE ORDER</button>`);
+  <button id="qrPlaceBtn" type="button" class="btn primary" style="width:100%;margin-top:8px" onclick="window.__qrPlace()">PLACE ORDER</button>);
   const btn=$("qrPlaceBtn");
   
 };
