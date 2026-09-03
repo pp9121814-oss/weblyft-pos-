@@ -315,7 +315,7 @@ async function loadCloud(r){
    total:Number(x.total||0),
    status:statusMap[String(x.status||"new").toLowerCase()]||String(x.status||"New"),
    eta:x.eta_minutes ?? x.eta ?? null,
-   started:x.started_at?new Date(x.started_at).getTime():null,
+   
    created:x.created_at?new Date(x.created_at).getTime():Date.now(),
    source:x.source||"QR",
    customerName:x.customer_name||""
@@ -355,7 +355,7 @@ async function loadCloudOrders(r){
    total:Number(x.total||0),
    status:statusMap[String(x.status||"new").toLowerCase()]||String(x.status||"New"),
    eta:x.eta_minutes ?? x.eta ?? null,
-   started:x.started_at?new Date(x.started_at).getTime():null,
+   
    created:x.created_at?new Date(x.created_at).getTime():Date.now(),
    source:x.source||"QR",
    customerName:x.customer_name||""
@@ -1344,7 +1344,6 @@ function trackC(){
       const next=map[String(data.status||"new").toLowerCase()]||"New";
       placed.status=next;
       placed.eta=data.eta_minutes??null;
-      placed.started=data.started_at?new Date(data.started_at).getTime():null;
       renderTrackC(next,placed.eta);
       if(next==="Served"||next==="Cancelled")clearInterval(window.__orderTracker);
     }catch(e){
