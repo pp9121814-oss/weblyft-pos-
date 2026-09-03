@@ -6,18 +6,7 @@
 <meta name="theme-color" content="#06294c">
 <meta name="mobile-web-app-capable" content="yes">
 <title>WEBLYFT Restaurant OS</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
-window.addEventListener("error",e=>{
-  console.error(e.error||e.message);
-  const a=$("app");
-  if(a && !a.innerHTML.trim()){
-    a.innerHTML=`<div class="wrap"><div class="card"><h2>WEBLYFT error</h2><p>${esc(e.message||"Unknown error")}</p><button class="btn primary" onclick="location.reload()">RELOAD</button></div></div>`;
-  }
-});
-window.addEventListener("unhandledrejection",e=>{
-  console.error(e.reason);
-});
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{--nav:#06294c;--nav2:#041d35;--blue:#0872ee;--cyan:#18b9df;--green:#18a467;--red:#df4d57;--orange:#e99b19;--bg:#f4f7fb;--card:#fff;--line:#dfe7ef;--text:#10243e;--mut:#718096}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -174,6 +163,10 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:active{tr
   <div class="mnav" id="mobileNav"></div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+window.addEventListener("error",e=>console.error("WEBLYFT runtime error:",e.error||e.message));
+window.addEventListener("unhandledrejection",e=>console.error("WEBLYFT promise error:",e.reason));
+</script>
 <script>
 /* WEBLYFT FINAL HTML APP
    - Phone-first responsive UI
@@ -1190,7 +1183,7 @@ try{
   <div class=line><b>Total</b><b>${money(sub+tax)}</b></div>
   <input id=customerName class=field placeholder="Name (optional)">
   <textarea id=customerNote class=field placeholder="Special note"></textarea>
-  <button id="qrPlaceBtn" type="button" class="btn primary" style="width:100%;margin-top:8px" onclick="window.__qrPlace()">PLACE ORDER</button>);
+  <button id="qrPlaceBtn" type="button" class="btn primary" style="width:100%;margin-top:8px" onclick="window.__qrPlace()">PLACE ORDER</button>`);
   const btn=$("qrPlaceBtn");
   
 };
