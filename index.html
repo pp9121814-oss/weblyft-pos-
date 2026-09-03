@@ -681,8 +681,7 @@ async function accept(id){
  if(eta===null)return;
  const minutes=Math.max(1,+eta||20);
  try{
-   const startedAt=new Date().toISOString();
-    const {error}=await sb.from("orders").update({status:"preparing",eta_minutes:minutes,started_at:startedAt}).eq("id",x.cloudId).eq("restaurant_id",current().id);
+   const {error}=await sb.from("orders").update({status:"preparing",eta_minutes:minutes}).eq("id",x.cloudId).eq("restaurant_id",current().id);
    if(error)throw error;
    await loadCloudOrders(current());
    const nx=getOrders().find(o=>String(o.cloudId)===String(x.cloudId));
@@ -709,7 +708,7 @@ async function statusOrder(id,s){
 function kitchen(){ if(!accessAllowed(current())){ return accessLockedPage(); }
 let o=getOrders(),cols=["New","Preparing","Ready"];return `<div class=head><div><h1>Kitchen / KOT</h1><small class=mut>Preparation board</small></div></div><div class=kanban>${cols.map(c=>`<section class=col><h3>${c.toUpperCase()}</h3>
 ${o.filter(x=>x.status===c).map(x=>`<div class=order><div class=line><b>#${x.id}</b><span>Table ${x.table}</span></div><ul>${x.items.map(i=>`<li>${i.qty} × ${esc(i.name)}</li>`).join("")}</ul>
-${c==="New"?`<button class="btn success" style="width:100%" onclick="accept('${esc(String(x.cloudId||x.id))}')">ACCEPT + SET ETA</button>`:c==="Preparing"?`<div class=eta>${x.eta} min</div><button class="btn primary" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Ready')">ORDER READY</button>`:`<button class="btn soft" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Served')">MARK SERVED</button>`}</div>`).join("")||"<p class=mut>Empty</p>"}</section>`).join("")}</div>`;
+${c==="New"?`<button class="btn success" style="width:100%" onclick="accept('${esc(String(x.cloudId||x.id))}')">ACCEPT + SET ETA</button>`:c==="Preparing"?`<div class=eta>${x.eta==null?"—":x.eta+" min"}</div><button class="btn primary" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Ready')">ORDER READY</button>`:`<button class="btn soft" style="width:100%" onclick="statusOrder('${esc(String(x.cloudId||x.id))}','Served')">MARK SERVED</button>`}</div>`).join("")||"<p class=mut>Empty</p>"}</section>`).join("")}</div>`;
 }
 function tables(){ if(!accessAllowed(current())){ return accessLockedPage(); }
 let r=current();return `<div class=head><div><h1>Tables & QR</h1><small class=mut>One unique QR per table</small></div><button class="btn primary" onclick=addTable()>+ ADD TABLE</button></div>
