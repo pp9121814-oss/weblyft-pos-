@@ -6,7 +6,18 @@
 <meta name="theme-color" content="#06294c">
 <meta name="mobile-web-app-capable" content="yes">
 <title>WEBLYFT Restaurant OS</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
+window.addEventListener("error",e=>{
+  console.error(e.error||e.message);
+  const a=$("app");
+  if(a && !a.innerHTML.trim()){
+    a.innerHTML=`<div class="wrap"><div class="card"><h2>WEBLYFT error</h2><p>${esc(e.message||"Unknown error")}</p><button class="btn primary" onclick="location.reload()">RELOAD</button></div></div>`;
+  }
+});
+window.addEventListener("unhandledrejection",e=>{
+  console.error(e.reason);
+});
+</script>
 <style>
 :root{--nav:#06294c;--nav2:#041d35;--blue:#0872ee;--cyan:#18b9df;--green:#18a467;--red:#df4d57;--orange:#e99b19;--bg:#f4f7fb;--card:#fff;--line:#dfe7ef;--text:#10243e;--mut:#718096}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -163,10 +174,6 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:active{tr
   <div class="mnav" id="mobileNav"></div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-window.addEventListener("error",e=>console.error("WEBLYFT runtime error:",e.error||e.message));
-window.addEventListener("unhandledrejection",e=>console.error("WEBLYFT promise error:",e.reason));
-</script>
 <script>
 /* WEBLYFT FINAL HTML APP
    - Phone-first responsive UI
@@ -375,20 +382,6 @@ const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
 const money=n=>"₹"+Math.round(n||0).toLocaleString("en-IN");
 const rid=()=>`WL-${Math.floor(100000+Math.random()*900000)}`;
 const token=()=>crypto.randomUUID?crypto.randomUUID():Math.random().toString(36)+Date.now().toString(36);
-function distance(lat1,lon1,lat2,lon2){
-  const a1=Number(lat1), o1=Number(lon1), a2=Number(lat2), o2=Number(lon2);
-  if(!Number.isFinite(a1)||!Number.isFinite(o1)||!Number.isFinite(a2)||!Number.isFinite(o2)){
-    return Infinity;
-  }
-  const R=6371000;
-  const rad=Math.PI/180;
-  const dLat=(a2-a1)*rad;
-  const dLon=(o2-o1)*rad;
-  const s1=Math.sin(dLat/2);
-  const s2=Math.sin(dLon/2);
-  const h=s1*s1+Math.cos(a1*rad)*Math.cos(a2*rad)*s2*s2;
-  return 2*R*Math.atan2(Math.sqrt(h),Math.sqrt(Math.max(0,1-h)));
-}
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 
 function auth(){
@@ -673,7 +666,8 @@ async function accept(id){
  if(eta===null)return;
  const minutes=Math.max(1,+eta||20);
  try{
-   const {error}=await sb.from("orders").update({status:"preparing"}).eq("id",x.cloudId).eq("restaurant_id",current().id);
+   const startedAt=new Date().toISOString();
+    const {error}=await sb.from("orders").update({status:"preparing",eta_minutes:minutes,started_at:startedAt}).eq("id",x.cloudId).eq("restaurant_id",current().id);
    if(error)throw error;
    await loadCloudOrders(current());
    const nx=getOrders().find(o=>String(o.cloudId)===String(x.cloudId));
@@ -686,7 +680,9 @@ async function statusOrder(id,s){
  if(!x)return;
  const dbStatus={New:"new",Preparing:"preparing",Ready:"ready",Served:"served"}[s]||String(s).toLowerCase();
  try{
-   const {error}=await sb.from("orders").update({status:dbStatus}).eq("id",x.cloudId).eq("restaurant_id",current().id);
+   const patch={status:dbStatus};
+    if(s==="Ready"||s==="Served")patch.eta_minutes=null;
+    const {error}=await sb.from("orders").update(patch).eq("id",x.cloudId).eq("restaurant_id",current().id);
    if(error)throw error;
    if(s==="Served" && x.tableId){
      await sb.from("restaurant_tables").update({status:"available"}).eq("id",x.tableId).eq("restaurant_id",current().id);
@@ -1299,12 +1295,45 @@ window.__qrPlace=async()=>{
     fail("Order could not be placed: "+(e?.message||e));
   }
 };
-function trackC(){
-  $("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block">TABLE ${t.no} • ORDER #${esc(placed.id)}</small></header><main class=wrap><div class=card>
-  <div class=timeline>${["New","Preparing","Ready","Served"].map((x,i)=>`<div class="node ${i===0?'on':''}" id="node-${i}"><div style="width:20px;height:20px;border-radius:50%;margin:auto;background:${i===0?'#19a66a':'#e3e9ef'}"></div>${x}</div>`).join("")}</div>
-  <h2 style="text-align:center">Order received</h2><p class=mut style="text-align:center">Order #${esc(placed.id)} has been sent to the restaurant.</p>
+function renderTrackC(status="New",eta=null){
+  const steps=["New","Preparing","Ready","Served"];
+  const idx=Math.max(0,steps.indexOf(status));
+  $("app").innerHTML=`<div class=customer><header class=chead><b>${esc(r.name)}</b><small style="display:block">TABLE ${t.no} • ORDER #${esc(placed.id)}</small></header>
+  <main class=wrap><div class=card>
+    <div class=timeline>${steps.map((x,i)=>`<div class="node ${i<=idx?'on':''}">
+      <div style="width:20px;height:20px;border-radius:50%;margin:auto;background:${i<=idx?'#19a66a':'#e3e9ef'}"></div>${x}
+    </div>`).join("")}</div>
+    <h2 style="text-align:center">${status==="Served"?"Order served":status==="Ready"?"Order ready":status==="Preparing"?"Order is being prepared":"Order received"}</h2>
+    <p class=mut style="text-align:center">Order #${esc(placed.id)} • ${status}</p>
+    ${status==="Preparing"&&eta!=null?`<div class=eta>${eta} min</div><p class=mut style="text-align:center">Estimated preparation time</p>`:""}
+    ${status==="Ready"?`<div class=successBox style="text-align:center">Your order is ready.</div>`:""}
+    ${status==="Served"?`<div class=successBox style="text-align:center">Thank you! Your order has been served.</div>`:""}
   </div></main></div>`;
- }
+}
+function trackC(){
+  renderTrackC(placed.status||"New",placed.eta??null);
+  clearInterval(window.__orderTracker);
+  window.__orderTracker=setInterval(async()=>{
+    try{
+      const {data,error}=await sb.rpc("get_public_order_status",{
+        p_order_id:placed.id,
+        p_restaurant_id:r.id,
+        p_table_id:t.id
+      });
+      if(error)throw error;
+      if(!data)return;
+      const map={new:"New",pending:"New",confirmed:"New",preparing:"Preparing",ready:"Ready",served:"Served",completed:"Served",cancelled:"Cancelled"};
+      const next=map[String(data.status||"new").toLowerCase()]||"New";
+      placed.status=next;
+      placed.eta=data.eta_minutes??null;
+      placed.started=data.started_at?new Date(data.started_at).getTime():null;
+      renderTrackC(next,placed.eta);
+      if(next==="Served"||next==="Cancelled")clearInterval(window.__orderTracker);
+    }catch(e){
+      console.warn("Order tracking:",e);
+    }
+  },3000);
+}
 
  renderC();
 }catch(e){
